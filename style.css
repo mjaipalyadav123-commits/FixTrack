@@ -1,0 +1,115 @@
+/* Page background */
+body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(to right, #4facfe, #00f2fe);
+  height: 100vh;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Centered card */
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.card {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  width: 320px;
+  text-align: center;
+}
+
+/* Logo text */
+.logo {
+  font-size: 24px;
+  color: #2c6ed5;
+  margin-bottom: 10px;
+}
+
+/* Form inputs */
+form input {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+/* Button */
+form button {
+  width: 100%;
+  padding: 10px;
+  background: #2c6ed5;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+form button:hover {
+  background: #1d4e99;
+}
+
+/* Links */
+a {
+  color: #2c6ed5;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+.input-container select {
+  width: 100%;
+  padding: 12px 45px 12px 15px;
+  border: none;
+  border-radius: 10px;
+  outline: none;
+  font-size: 15px;
+  background: rgba(255, 255, 255, 0.11);
+  color: white;
+  box-shadow: 0 0 10px rgba(0, 224, 255, 0.25);
+  transition: 0.3s;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  position: relative;
+}
+
+/* Extra: Make it glow on focus for accessibility */
+.input-container select:focus {
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 18px #00e0ff;
+  color: white;
+}
+
+/* Optional—placeholder style */
+.input-container select option:first-child {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Custom dropdown arrow for Chrome/Edge/Safari (pseudo element technique) */
+.input-container {
+  position: relative;
+}
+.input-container select {
+  background-image:
+    linear-gradient(45deg, transparent 49%, #00e0ff 50%, transparent 51%),
+    linear-gradient(135deg, transparent 49%, #00e0ff 50%, transparent 51%);
+  background-position:
+    calc(100% - 26px) calc(1em + 2px),
+    calc(100% - 20px) calc(1em + 2px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 45px;
+}
+

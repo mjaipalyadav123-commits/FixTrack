@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FixTrack Technician Dashboard</title>
+  <!-- Chart.js library removed as requested -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
+    body { background: #111931; margin: 0; color: #e1f5ff; font-family: 'Poppins',sans-serif; min-height: 100vh; }
+    /* Dashboard styles same as before, omitted here for brevity */
+    .dashboard-layout { display: flex; min-height: 100vh; }
+    .sidebar { width: 320px; background: linear-gradient(135deg,#19335A 85%,#16222A 100%); box-shadow: 0 0 26px #0e2a47; color: #bddefc; display: flex; flex-direction: column; padding: 32px 16px 0 16px; min-height: 100vh; }
+    .sidebar-header { display: flex; gap: 12px; align-items: center; }
+    .logo-block { background: linear-gradient(135deg,#43f3e3 40%,#6669f9 100%); border-radius: 14px; width: 54px; height: 54px; font-size: 2rem; font-weight: bold; color: white; box-shadow: 0 0 24px #43f3e3; display: flex; align-items: center; justify-content: center; }
+    .welcome-card { margin: 28px 0 18px 0; background: #20345e; border-radius: 16px; box-shadow: 0 0 21px #4fddf3c4; padding: 18px 16px; }
+    .welcome-card .role-chip { background: #08203a; color: #43f3e3; border-radius: 7px; padding: 5px 18px; font-weight: 700; margin-right: 10px; }
+    .quick-actions { display: flex; gap: 10px; margin-top: 14px; }
+    .quick-actions button { background: linear-gradient(90deg,#43f3e3,#6669f9); border: none; border-radius: 9px; color: #19335A; font-weight: bold; padding: 10px 18px; box-shadow: 0 0 12px #43f3e3b5; cursor: pointer; }
+    .sidebar-nav { margin: 24px 0 15px 0; display: flex; flex-direction: column; gap: 7px; }
+    .sidebar-nav a { color: #b0cbee; text-decoration: none; padding: 8px 15px; border-radius: 7px; font-size: 1.06rem; transition: background 0.22s,color 0.22s; }
+    .sidebar-nav a.active,.sidebar-nav a:hover { background: #212F4A; color: #e3fbff; }
+    .tech-box { margin-top: auto; background: #1D2945; border-radius: 12px; padding: 11px 16px; box-shadow: 0 0 13px #43f3e38a; }
+    .tech-avatar { background: #43f3e3; color: #19335A; font-weight: bold; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 1.05rem; }
+    .main-panel { flex: 1; padding: 38px 38px 0 38px; background: transparent; display: flex; flex-direction: column; gap: 24px; }
+    .overview-block { display: flex; gap: 25px; margin-bottom: 25px; background: #162741; border-radius: 14px; padding: 18px 25px; box-shadow: 0 0 20px #43f3e36a; align-items: center; }
+    .overview-item { flex: 1; color: #e3fbff; text-align: center; margin: 0 10px; }
+    .overview-label { font-size: 1.04rem; color: #b0cbee; margin-bottom: 7px; letter-spacing:0.02em }
+    .overview-value { font-size: 1.85rem; color: #43f3e3; font-weight: 700;}
+    .recent-row-block { display: flex; gap: 32px; flex-wrap: wrap; background: #172741; border-radius: 18px; box-shadow: 0 0 16px #43f3e322; padding: 29px 18px; }
+    .assigned-list {min-width:240px;max-width:420px;flex: 1;}
+    .assigned-list h2 {font-weight: 700;color:#eafffb;font-size:1.1rem;margin-bottom:13px;}
+    .assigned-card { background: #151d36; border-radius: 12px; margin-bottom: 14px; padding: 15px 18px; color: #c7eaff; box-shadow: 0 0 8px #43f3e328; font-size: 1.07rem; position:relative }
+    .assigned-title { font-weight: bold; font-size: 1.12rem; color: #e3fbff; }
+    .assigned-meta { color: #b0cbee; font-size: 0.97rem; }
+    .status-chip { display: inline-block; font-size: 0.96rem; font-weight: 700; border-radius: 7px; padding: 2px 14px; color: #fff; margin-top: 7px; margin-right:12px;}
+    .muted-sm { color: #85caf3; font-size: 0.97rem; }
+    .status-pending { background:#534211; color:#f0d974; }
+    .status-progress { background:#254d6d; color:#50e7f9; }
+    .status-resolved { background:#11443a; color:#86ffea; }
+    .assigned-action-btn { background: #1e335c; color: #d8f2ff; border-radius: 7px; padding: 4px 18px; border: none; font-weight: 600; margin-top: 8px; font-size: 0.97rem; cursor: pointer; }
+    .assigned-action-btn:hover {background:#43f3e3a6;color:#19335A}
+    .chart-panel { flex:1; min-width:320px; display: flex; flex-direction: column; align-items: center; justify-content: center; background:#1e2945;border-radius:15px; box-shadow:0 0 16px #43f3e312; padding: 20px 0; }
+    .chart-panel h3 {color:#b5eafd;margin-bottom:12px;}
+    .issue-legend {margin-top:13px;font-size:1.01rem;}
+    .legend-block {display:inline-block;width:18px;height:18px;border-radius:6px;vertical-align:middle;}
+    .legend-it {background:#63aaff;}
+    .legend-elec {background:#7ee5b2;}
+    @media(max-width:900px){ .main-panel{padding:10px;} .sidebar{width:100%;} .recent-row-block{flex-direction:column;gap:18px;} .overview-block{flex-direction:column;} }
+    @media(max-width:600px){ .main-panel{padding:5px;} .sidebar{padding:8px;} }
+  </style>
+</head>
+<body>
+<div id="statusModal" style="display:none; position:fixed; left:0;top:0;width:100vw;height:100vh;background:rgba(18,20,34,.88);z-index:999;align-items:center;justify-content:center;">
+  <form id="statusForm" style="background:#19335A; padding:35px 25px; border-radius:18px; max-width:350px; width:95%; display:flex; flex-direction:column; gap:12px;">
+    <h2 style="color:#41f2e4;">Update Status</h2>
+    <select id="updateStatus" required>
+      <option value="" disabled selected>Select Status</option>
+      <option value="pending">Pending</option>
+      <option value="in-progress">In Progress</option>
+      <option value="resolved">Resolved</option>
+    </select>
+    <textarea id="techComment" placeholder="Add a comment..." style="width:100%; min-height:60px;"></textarea>
+    <div style="display:flex;gap:15px;">
+      <button type="submit" style="background:#41f2e4;border:none;padding:8px 24px;border-radius:7px;font-weight:bold;font-size:1.06em;cursor:pointer;">Save</button>
+      <button type="button" id="closeStatusModal" style="background:#13294d;color:#dcd8ed;border:none;padding:8px 22px;border-radius:7px;cursor:pointer;">Cancel</button>
+    </div>
+  </form>
+</div>
+<div class="dashboard-layout">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-block">Fx</div>
+      <div>
+        <div style="font-size:1.12rem;font-weight:700;">FixTrack</div>
+        <div style="font-size:0.99rem; color:#a1d2f4;margin-top:-2px;">Smart Repair & Maintenance</div>
+      </div>
+    </div>
+    <div class="welcome-card">
+      <div>Welcome</div>
+      <div>
+        <span class="role-chip">Technician</span>
+        <span style="float:right;" id="wrkCount">0</span>
+      </div>
+      <div style="margin-top:10px;color:#c2faff;">
+        <span id="techName">Asha Patel</span> (<span id="techSkills">IT, Electrical</span>)
+      </div>
+      <div class="quick-actions" style="margin-top:20px;">
+        <button id="viewAssignedBtn">Assigned Tickets</button>
+        <button id="viewHistoryBtn">Work History</button>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="active" href="#" id="dashboardLink">Dashboard</a>
+      <a href="#" id="assignedTicketsLink">Assigned Tickets</a>
+      <a href="#" id="workHistoryLink">Work History</a>
+      <a href="#" id="studentsLink">Students</a>
+      <a href="#" id="logoutBtn">Logout</a>
+    </nav>
+    <div class="tech-box">
+      <div style="font-weight:700;color:#43f3e3;">About Me</div>
+      <div class="tech-row" style="margin-top:7px;">
+        <span class="tech-avatar" id="sideTechAv">AP</span>
+        <span id="sideTechName">Asha Patel</span>
+        <span style="margin-left:auto;">WL: <span id="sideWork">0</span></span>
+      </div>
+      <div style="margin-top:7px;font-size:1.01em;color:#85caf3;">
+        <span id="sideTechSkills">Skills: IT, Electrical</span>
+      </div>
+      <!-- Added profile edit button -->
+      <div style="margin-top:10px;">
+        <button id="editProfileBtn" style="background:#1e335c;color:#d8f2ff;border-radius:7px;padding:4px 12px;border:none;font-size:0.9rem;cursor:pointer;">Edit Profile</button>
+      </div>
+    </div>
+  </aside>
+  <main class="main-panel">
+    <section class="overview-block">
+      <div class="overview-item"><div class="overview-label">Assigned</div><div class="overview-value" id="assignedCount">0</div></div>
+      <div class="overview-item"><div class="overview-label">In Progress</div><div class="overview-value" id="progressCount">0</div></div>
+      <div class="overview-item"><div class="overview-label">Resolved</div><div class="overview-value" id="resolvedCount">0</div></div>
+    </section>
+    <section class="recent-row-block">
+      <div class="assigned-list"><h2>Assigned Tickets</h2></div>
+      <div class="chart-panel">
+        <h3>Quick Actions</h3>
+        <div style="text-align:center;margin-top:20px;">
+          <button id="showPendingBtn" style="background:linear-gradient(90deg,#43f3e3,#6669f9);border:none;border-radius:9px;color:#19335A;font-weight:bold;padding:10px 18px;box-shadow:0 0 12px #43f3e3b5;cursor:pointer;margin:10px;">Show Pending Reports</button>
+          <div class="muted-sm" style="margin-top:15px;">Click above to view and claim new reports from students</div>
+        </div>
+      </div>
+    </section>
+    <section class="recent-row-block" id="pendingReportsSection" style="display:none;">
+      <div class="assigned-list">
+        <h2>Pending Reports <button id="refreshPendingBtn" style="float:right;background:#1e335c;color:#d8f2ff;border-radius:7px;padding:2px 8px;border:none;font-size:0.8rem;cursor:pointer;">Refresh</button></h2>
+        <div id="pendingReportsList"></div>
+      </div>
+      <div class="chart-panel">
+        <h3>Quick Stats</h3>
+        <div class="muted-sm" style="padding:20px;text-align:center;">
+          <div style="margin-bottom:15px;">📋</div>
+          <div>Claim pending reports to get started</div>
+          <button id="showPendingBtn" style="margin-top:15px;background:linear-gradient(90deg,#43f3e3,#6669f9);border:none;border-radius:9px;color:#19335A;font-weight:bold;padding:8px 16px;cursor:pointer;margin:10px;">Show Pending Reports</button>
+        </div>
+      </div>
+    </section>
+    <!-- Work History Section -->
+    <section class="recent-row-block" id="workHistorySection" style="display:none;">
+      <div class="assigned-list">
+        <h2>Work History <button id="refreshHistoryBtn" style="float:right;background:#1e335c;color:#d8f2ff;border-radius:7px;padding:2px 8px;border:none;font-size:0.8rem;cursor:pointer;">Refresh</button></h2>
+        <div id="workHistoryList"></div>
+      </div>
+      <div class="chart-panel">
+        <h3>History Summary</h3>
+        <div id="historySummary" class="muted-sm" style="padding:15px;">
+          View all your completed work and resolved issues here.
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<div id="profileModal" style="display:none; position:fixed; left:0;top:0;width:100vw;height:100vh;background:rgba(18,20,34,.88);z-index:999;align-items:center;justify-content:center;">
+  <form id="profileForm" style="background:#19335A; padding:35px 25px; border-radius:18px; max-width:350px; width:95%; display:flex; flex-direction:column; gap:12px;">
+    <h2 style="color:#41f2e4;">Edit Profile</h2>
+    <input type="text" id="technicianName" placeholder="Full Name" required style="padding:10px;border-radius:7px;border:none;background:#13294d;color:#dcd8ed;">
+    <input type="text" id="technicianDesignation" placeholder="Designation (e.g., IT Specialist)" required style="padding:10px;border-radius:7px;border:none;background:#13294d;color:#dcd8ed;">
+    <div style="display:flex;gap:15px;">
+      <button type="submit" style="background:#41f2e4;border:none;padding:8px 24px;border-radius:7px;font-weight:bold;font-size:1.06em;cursor:pointer;">Save</button>
+      <button type="button" id="closeProfileModal" style="background:#13294d;color:#dcd8ed;border:none;padding:8px 22px;border-radius:7px;cursor:pointer;">Cancel</button>
+    </div>
+  </form>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    // Check if user is logged in
+    const userEmail = localStorage.getItem("userEmail");
+    console.log("Technician email from localStorage:", userEmail);
+    
+    if (!userEmail) {
+      console.log("No technician email found, redirecting to login");
+      window.location.href = "login.html";
+      return;
+    }
+
+    // Extract username from email (part before @)
+    const username = userEmail.split('@')[0];
+    const technicianId = userEmail; // Still using email as technician ID for database operations
+
+    console.log("Technician ID:", technicianId);
+    
+    // Update welcome message with username
+    const welcomeElement = document.querySelector('.welcome-card > div:first-child');
+    if (welcomeElement) {
+      welcomeElement.innerHTML = `Welcome, ${username}`;
+    }
+    
+    const techNameElement = document.getElementById('techName');
+    if (techNameElement) {
+      techNameElement.textContent = username;
+    }
+    
+    // Update sidebar info
+    const sideTechNameElement = document.getElementById('sideTechName');
+    if (sideTechNameElement) {
+      sideTechNameElement.textContent = username;
+    }
+    
+    // Generate initials for avatar
+    const nameParts = username.split('.');
+    const initials = nameParts.map(part => part.charAt(0).toUpperCase()).join('');
+    const sideTechAvElement = document.getElementById('sideTechAv');
+    if (sideTechAvElement) {
+      sideTechAvElement.textContent = initials;
+    }
+
+    let assignedTickets = [];
+    let pendingReports = [];
+    let workHistory = [];
+    let showingPending = false;
+
+    // Load technician profile on page load
+    loadTechnicianProfile();
+
+    // Navigation elements
+    const dashboardLink = document.getElementById('dashboardLink');
+    const assignedTicketsLink = document.getElementById('assignedTicketsLink');
+    const workHistoryLink = document.getElementById('workHistoryLink');
+    const studentsLink = document.getElementById('studentsLink');
+    
+    // Profile elements
+    const editProfileBtn = document.getElementById('editProfileBtn');
+    const profileModal = document.getElementById('profileModal');
+    const profileForm = document.getElementById('profileForm');
+    const closeProfileModal = document.getElementById('closeProfileModal');
+    
+    // Section elements
+    const dashboardSection = document.querySelector('.recent-row-block:not([id])'); // The first recent-row-block
+    const pendingReportsSection = document.getElementById('pendingReportsSection');
+    const workHistorySection = document.getElementById('workHistorySection');
+    
+    // Button elements
+    const showPendingBtn = document.getElementById('showPendingBtn');
+    const refreshPendingBtn = document.getElementById('refreshPendingBtn');
+    const refreshHistoryBtn = document.getElementById('refreshHistoryBtn');
+
+    // Function to load technician profile
+    async function loadTechnicianProfile() {
+      try {
+        const response = await fetch(`/technicians/profile/${encodeURIComponent(technicianId)}`);
+        if(response.ok) {
+          const profile = await response.json();
+          // Update UI with profile information
+          if (profile.name) {
+            document.getElementById('techName').textContent = profile.name;
+            document.getElementById('sideTechName').textContent = profile.name;
+            
+            // Update avatar with name initials
+            const nameParts = profile.name.split(' ');
+            const initials = nameParts.map(part => part.charAt(0).toUpperCase()).join('');
+            document.getElementById('sideTechAv').textContent = initials;
+          }
+          
+          if (profile.designation) {
+            document.getElementById('sideTechSkills').textContent = `Skills: ${profile.designation}`;
+            document.getElementById('techSkills').textContent = profile.designation;
+          }
+        }
+      } catch(err) {
+        console.error("Error loading technician profile:", err);
+      }
+    }
+
+    // Function to show a specific section and hide others
+    function showSection(section) {
+      // Hide all sections
+      dashboardSection.style.display = 'none';
+      pendingReportsSection.style.display = 'none';
+      workHistorySection.style.display = 'none';
+      
+      // Show the requested section
+      section.style.display = 'flex';
+      
+      // Update active link
+      dashboardLink.classList.remove('active');
+      assignedTicketsLink.classList.remove('active');
+      workHistoryLink.classList.remove('active');
+      
+      if (section === dashboardSection) {
+        dashboardLink.classList.add('active');
+        assignedTicketsLink.classList.add('active'); // Dashboard shows assigned tickets
+      } else if (section === pendingReportsSection) {
+        assignedTicketsLink.classList.add('active');
+      } else if (section === workHistorySection) {
+        workHistoryLink.classList.add('active');
+      }
+    }
+
+    // Navigation event handlers
+    dashboardLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      showSection(dashboardSection);
+      fetchAssignedReports(); // Refresh dashboard data
+    });
+
+    assignedTicketsLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      showSection(pendingReportsSection);
+      if (showingPending) {
+        fetchPendingReports(); // Load pending reports when navigating to this section
+      }
+    });
+
+    workHistoryLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      showSection(workHistorySection);
+      fetchWorkHistory(); // Load work history when navigating to this section
+    });
+
+    studentsLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      alert('Student management features would be implemented here.');
+    });
+
+    // Profile management
+    editProfileBtn.addEventListener('click', function() {
+      // Load current profile data into form
+      document.getElementById('technicianName').value = document.getElementById('techName').textContent;
+      document.getElementById('technicianDesignation').value = document.getElementById('techSkills').textContent.replace('Skills: ', '');
+      profileModal.style.display = 'flex';
+    });
+
+    closeProfileModal.addEventListener('click', function() {
+      profileModal.style.display = 'none';
+    });
+
+    profileForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const name = document.getElementById('technicianName').value;
+      const designation = document.getElementById('technicianDesignation').value;
+      
+      try {
+        const response = await fetch(`/technicians/profile/${encodeURIComponent(technicianId)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, designation })
+        });
+        
+        if(response.ok) {
+          // Update UI with new profile information
+          document.getElementById('techName').textContent = name;
+          document.getElementById('sideTechName').textContent = name;
+          document.getElementById('sideTechSkills').textContent = `Skills: ${designation}`;
+          document.getElementById('techSkills').textContent = designation;
+          
+          // Update avatar with name initials
+          const nameParts = name.split(' ');
+          const initials = nameParts.map(part => part.charAt(0).toUpperCase()).join('');
+          document.getElementById('sideTechAv').textContent = initials;
+          
+          profileModal.style.display = 'none';
+          alert('Profile updated successfully!');
+        } else {
+          alert('Failed to update profile');
+        }
+      } catch(err) {
+        alert('Error updating profile');
+      }
+    });
+
+    // Add logout functionality
+    document.getElementById('logoutBtn').onclick = function() {
+      localStorage.removeItem("userEmail");
+      window.location.href = "login.html";
+    };
+
+    document.getElementById('closeStatusModal').onclick = function() {
+      document.getElementById('statusModal').style.display = 'none';
+    };
+
+    // Toggle pending reports section
+    showPendingBtn.onclick = function() {
+      showingPending = !showingPending;
+      pendingReportsSection.style.display = showingPending ? 'flex' : 'none';
+      this.textContent = showingPending ? 'Hide Pending Reports' : 'Show Pending Reports';
+      if (showingPending) {
+        fetchPendingReports();
+      }
+    };
+
+    refreshPendingBtn.onclick = fetchPendingReports;
+    refreshHistoryBtn.onclick = fetchWorkHistory;
+
+    async function fetchAssignedReports() {
+      try {
+        console.log("Fetching assigned reports for technicianId:", technicianId);
+        const response = await fetch(`/technicians/reports/${encodeURIComponent(technicianId)}`);
+        console.log("Response status:", response.status);
+        
+        if(response.ok) {
+          const reports = await response.json();
+          console.log("Assigned tickets fetched:", reports);
+          
+          // Check if reports is an array
+          if (!Array.isArray(reports)) {
+            console.error("Expected array of reports, got:", typeof reports, reports);
+            return;
+          }
+          
+          assignedTickets = reports;
+          refreshAssigned();
+      } else {
+        const errorText = await response.text();
+        console.error("Failed to fetch assigned reports:", response.status, errorText);
+      }
+    } catch(err) {
+      console.error("Error fetching assigned reports:", err);
+    }
+  }
+
+  async function fetchPendingReports() {
+    try {
+      const response = await fetch('/technicians/reports/pending');
+      if(response.ok) {
+        pendingReports = await response.json();
+        renderPendingReports();
+      } else {
+        const errorText = await response.text();
+        console.error("Failed to fetch pending reports:", response.status, errorText);
+      }
+    } catch(err) {
+      console.error("Error fetching pending reports:", err);
+    }
+  }
+
+  async function fetchWorkHistory() {
+    try {
+      console.log("Fetching work history for technicianId:", technicianId);
+      
+      // Use the dedicated endpoint to get only resolved reports for this technician
+      const response = await fetch(`/technicians/reports/history/${encodeURIComponent(technicianId)}`);
+      console.log("Work history response status:", response.status);
+      
+      if(response.ok) {
+        const resolvedReports = await response.json();
+        console.log("Resolved reports for work history:", resolvedReports);
+        
+        workHistory = resolvedReports;
+        renderWorkHistory(workHistory);
+      } else {
+        const errorText = await response.text();
+        console.error("Failed to fetch work history:", response.status, errorText);
+        document.getElementById('workHistoryList').innerHTML = '<div class="assigned-card">Failed to fetch work history. Please try again.</div>';
+      }
+    } catch(err) {
+      console.error("Error fetching work history:", err);
+      document.getElementById('workHistoryList').innerHTML = '<div class="assigned-card">Error fetching work history. Please check your connection and try again.</div>';
+    }
+  }
+
+  function refreshAssigned() {
+    try {
+      // For display: Filter out resolved reports from assigned tickets
+      const displayTickets = assignedTickets.filter(ticket => ticket.status !== 'resolved');
+      
+      // For counts: Calculate them correctly from all assigned tickets
+      const assignedCount = displayTickets.length;
+      const progressCount = assignedTickets.filter(t => t.status === "in-progress").length;
+      const resolvedCount = assignedTickets.filter(t => t.status === "resolved").length;
+
+      document.getElementById('assignedCount').textContent = assignedCount;
+      document.getElementById('progressCount').textContent = progressCount;
+      document.getElementById('resolvedCount').textContent = resolvedCount;
+      document.getElementById('wrkCount').textContent = assignedCount;
+      document.getElementById('sideWork').textContent = assignedCount;
+
+      const container = document.querySelector('.assigned-list');
+      if (!container) {
+        console.error("Assigned list container not found");
+        return;
+      }
+      
+      if (displayTickets.length === 0) {
+        container.innerHTML = '<h2>Assigned Tickets</h2><div class="assigned-card" style="text-align:center;">No assigned tickets</div>';
+        return;
+      }
+      
+      container.innerHTML = '<h2>Assigned Tickets</h2>' + displayTickets.map((t, displayIdx) => {
+        // Find the actual index in the assignedTickets array for the data-ticket-idx
+        const actualIdx = assignedTickets.findIndex(ticket => ticket._id === t._id);
+        return `
+          <div class="assigned-card">
+            <div class="assigned-title">${t.title || 'Untitled Report'}</div>
+            <div class="assigned-meta">${t.block || ''} ${t.floor ? ', Floor: ' + t.floor : ''} ${t.room ? ', Room: ' + t.room : ''}</div>
+            <div class="assigned-meta">${t.location || ''} • ${t.category || 'Maintenance'} • Priority: ${t.priority || 'Medium'}</div>
+            <div class="assigned-meta">Reported by: ${t.studentId || 'Unknown'}</div>
+            <span class="status-chip ${
+              t.status === 'pending' ? 'status-pending' :
+              t.status === 'in-progress' ? 'status-progress' :
+              'status-resolved'
+            }">${t.status || 'pending'}</span>
+            <button class="assigned-action-btn" data-ticket-idx="${actualIdx}">Update</button>
+          </div>
+        `;
+      }).join('');
+    } catch (err) {
+      console.error("Error refreshing assigned reports:", err);
+      const container = document.querySelector('.assigned-list');
+      if (container) {
+        container.innerHTML = '<h2>Assigned Tickets</h2><div class="assigned-card" style="text-align:center;">Error displaying tickets</div>';
+      }
+    }
+  }
+
+  function renderPendingReports() {
+    const container = document.getElementById('pendingReportsList');
+    if (!container) return;
+      
+    if (pendingReports.length === 0) {
+      container.innerHTML = '<div class="assigned-card" style="text-align:center;color:#b0cbee;">No pending reports</div>';
+      return;
+    }
+      
+    container.innerHTML = pendingReports.map((report, idx) => `
+        <div class="assigned-card">
+          <div class="assigned-title">${report.title}</div>
+          <div class="assigned-meta">${report.block || ''} ${report.floor ? ', Floor: ' + report.floor : ''} ${report.room ? ', Room: ' + report.room : ''}</div>
+          <div class="assigned-meta">${report.location || ''} • ${report.category} • Priority: ${report.priority || 'Medium'}</div>
+          <div class="assigned-meta">Reported by: ${report.studentId || 'Unknown'}</div>
+          <span class="status-chip status-pending">${report.status}</span>
+          <button class="assigned-action-btn" data-pending-idx="${idx}" data-report-id="${report._id}">Claim Report</button>
+        </div>
+      `).join('');
+  }
+
+  function renderWorkHistory(reports) {
+    const container = document.getElementById('workHistoryList');
+    if (!container) {
+      console.error("Work history container not found");
+      return;
+    }
+      
+    console.log("Rendering work history with reports:", reports);
+      
+    if (reports.length === 0) {
+      container.innerHTML = '<div class="assigned-card" style="text-align:center;color:#b0cbee;">No work history found</div>';
+      return;
+    }
+      
+    container.innerHTML = reports.map(r => `
+        <div class="assigned-card">
+          <div class="assigned-title">${r.title}</div>
+          <div class="assigned-meta">${r.block || ''} ${r.floor ? ', Floor: ' + r.floor : ''} ${r.room ? ', Room: ' + r.room : ''}</div>
+          <div class="assigned-meta">${r.location || ''} • ${r.category} • Priority: ${r.priority || 'Medium'}</div>
+          <div class="assigned-meta">Reported by: ${r.studentId || 'Unknown'}</div>
+          <div class="assigned-meta">Resolved: ${new Date(r.updatedAt || r.createdAt).toLocaleDateString()}</div>
+          ${r.technicianName ? `<div class="assigned-meta">Technician: ${r.technicianName}${r.technicianDesignation ? ` (${r.technicianDesignation})` : ''}</div>` : ''}
+          <span class="status-chip status-resolved">Resolved</span>
+        </div>
+      `).join('');
+  }
+
+  // Chart functionality removed as requested
+
+  let modalIdx = null;
+
+  document.addEventListener('click', function(e){
+    if(e.target.classList.contains('assigned-action-btn')) {
+      // Check if this is for claiming a pending report
+      const pendingIdx = e.target.getAttribute('data-pending-idx');
+      if (pendingIdx !== null) {
+        // This is a pending report claim
+        const reportId = e.target.getAttribute('data-report-id');
+        claimReport(reportId);
+        return;
+      }
+        
+      // This is for updating an assigned report
+      modalIdx = parseInt(e.target.getAttribute('data-ticket-idx'));
+      document.getElementById('updateStatus').value = assignedTickets[modalIdx].status || "";
+      document.getElementById('techComment').value = assignedTickets[modalIdx].comment || "";
+      document.getElementById('statusModal').style.display = 'flex';
+    }
+  });
+
+  // Function to claim a pending report
+  async function claimReport(reportId) {
+    try {
+      const response = await fetch(`/technicians/reports/${reportId}/assign`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          technicianId: technicianId,
+          status: 'in-progress'
+        })
+      });
+        
+      if(response.ok) {
+        alert('Report claimed successfully!');
+        // Refresh both lists
+        fetchAssignedReports();
+        fetchPendingReports();
+        // Also refresh work history section if it's visible
+        if (workHistorySection.style.display !== 'none') {
+          fetchWorkHistory();
+        }
+      } else {
+        alert('Failed to claim report');
+      }
+    } catch(err) {
+      alert('Error claiming report');
+    }
+  }
+
+  document.getElementById('statusForm').onsubmit = async function(e) {
+    e.preventDefault();
+    if(modalIdx !== null) {
+      const updatedStatus = document.getElementById('updateStatus').value;
+      const updatedComment = document.getElementById('techComment').value;
+      const reportId = assignedTickets[modalIdx]._id;
+      try {
+        const response = await fetch(`/technicians/reports/${reportId}/status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: updatedStatus })
+        });
+        if(response.ok) {
+          const updatedReport = await response.json();
+          assignedTickets[modalIdx].status = updatedStatus;
+          assignedTickets[modalIdx].comment = updatedComment;
+          document.getElementById('statusModal').style.display = 'none';
+          refreshAssigned();
+          modalIdx = null;
+            
+          // Also update the report in the database
+          await fetch(`/api/reports/${reportId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: updatedStatus, updatedAt: new Date() })
+          });
+            
+          // If status is resolved, refresh work history
+          if (updatedStatus === 'resolved') {
+            fetchWorkHistory();
+            // Also refresh the main assigned reports view
+            fetchAssignedReports();
+          }
+        } else {
+          alert('Failed to update status');
+        }
+      } catch(err) {
+        alert('Error updating status');
+      }
+    }
+  };
+
+  // Fetch reports on page load
+  fetchAssignedReports();
+  // Don't fetch pending reports automatically, only when user requests
+    
+  // Refresh assigned reports every 30 seconds
+  setInterval(() => {
+    fetchAssignedReports();
+  }, 30000);
+    
+  // Show dashboard section by default
+  showSection(dashboardSection);
+  } catch (err) {
+    console.error("Error initializing technician dashboard:", err);
+    alert("Error initializing dashboard. Please try refreshing the page.");
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>FixTrack Admin Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<!-- Font Awesome for icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<style>
+  :root{
+    --bg:#183056;
+    --card:#0b1220;
+    --muted:#98a0b3;
+    --accent1:#6ee7b7;
+    --accent2:#60a5fa;
+    --glass: rgba(98, 197, 230, 0.03);
+    --glass-2: rgba(98, 197, 230, 0.03);
+    --success:#238a68;
+    --danger:#ef4444;
+    --gold:#bd9144;
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background: linear-gradient(180deg, #071024 0%, #08132a 60%);
+    color:#e6eef8;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    padding:24px;
+  }
+
+  /* Layout */
+  .app{
+    max-width:1200px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns: 260px 1fr;
+    gap:20px;
+  }
+  @media (max-width:900px){
+    .app{grid-template-columns:1fr; padding-bottom:80px}
+    .sidebar{position:sticky; top:16px; z-index:2}
+  }
+
+  /* Sidebar */
+  .sidebar{
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+    border:1px solid rgba(255,255,255,0.04);
+    border-radius:12px;
+    padding:18px;
+    height:fit-content;
+    backdrop-filter: blur(8px);
+  }
+  .brand{
+    display:flex; gap:12px; align-items:center; margin-bottom:14px;
+  }
+  .logo{
+    width:52px; height:52px; border-radius:10px;
+    background: radial-gradient(circle at 30% 30%, var(--accent1), var(--accent2));
+    display:flex;align-items:center;justify-content:center;font-weight:800;color:#05233a;
+    box-shadow: 0 6px 18px rgba(96,165,250,0.08);
+    font-size:18px;
+  }
+  .brand h1{margin:0;font-size:18px}
+  .muted{color:var(--muted); font-size:13px}
+
+  .nav{margin-top:16px; display:flex; flex-direction:column; gap:8px}
+  .nav a{
+    display:flex; gap:12px; align-items:center; padding:10px 12px; border-radius:8px;
+    color: #dbeafe; text-decoration:none; font-weight:600; font-size:14px;
+  }
+  .nav a.active{ background: linear-gradient(90deg, rgba(96,165,250,0.12), rgba(110,231,183,0.06)); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02) }
+  .nav a i{ width:18px; text-align:center; color:var(--accent2) }
+
+  .small-card{ background:var(--glass); padding:12px; border-radius:10px; margin-top:12px; border:1px solid rgba(255,255,255,0.02)}
+  .tech-list{display:flex; gap:8px; flex-direction:column}
+  .tech-item{display:flex; align-items:center; justify-content:space-between}
+  .chip{font-size:12px; color:#041024; background: linear-gradient(90deg,var(--accent1),var(--accent2)); padding:6px 8px; border-radius:999px; font-weight:700}
+
+  /* Header + content */
+  .header{
+    display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:18px;
+  }
+  .search{
+    background:var(--glass-2); padding:10px 12px; border-radius:10px; display:flex; align-items:center; gap:10px; border:1px solid rgba(255,255,255,0.02)
+  }
+  .search input{ background:transparent; border:0; outline:0; color:inherit; width:320px}
+  .role-selector{display:flex; gap:8px; align-items:center}
+
+  .role-pill{padding:8px 12px; border-radius:999px; background:transparent; border:1px dashed rgba(255,255,255,0.03); cursor:pointer; font-weight:700; color:var(--muted)}
+  .role-pill.active{ background: linear-gradient(90deg, rgba(96,165,250,0.12), rgba(110,231,183,0.06)); color:#e6eef8 }
+
+  /* Main cards */
+  .grid{ display:grid; grid-template-columns: 1fr 420px; gap:20px }
+  @media (max-width:1100px){ .grid{ grid-template-columns:1fr } }
+
+  .card{
+    background: linear-gradient(180deg, rgba(152, 181, 186, 0.02), transparent);
+    padding:16px; border-radius:12px; border:1px solid rgba(255,255,255,0.03);
+    box-shadow: 0 6px 18px rgba(128, 133, 158, 0.5);
+  }
+  .card h2{margin:0 0 10px 0; font-size:16px}
+  .muted-sm{font-size:13px;color:var(--muted)}
+
+  /* Form */
+  .form-row{display:flex; gap:12px; margin-bottom:10px}
+  .form-row.col{flex-direction:column}
+  input[type="text"], select, textarea{
+    width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.03);
+    background:transparent;color:inherit; outline:none;
+  }
+  textarea{min-height:110px; resize:vertical}
+  .btn{
+    border:0;padding:10px 14px;border-radius:10px; font-weight:700; cursor:pointer;
+    background:linear-gradient(90deg,var(--accent2),var(--accent1)); color:#042033;
+    box-shadow: 0 8px 30px rgba(96,165,250,0.08);
+  }
+  .btn.ghost{ background:transparent; border:1px solid rgba(255,255,255,0.04); color:var(--muted) }
+
+  .uploads{display:flex; gap:10px; flex-wrap:wrap; margin-top:8px}
+  .upl-thumb{width:120px;height:80px;border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.03); display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.01)}
+  .upl-thumb img, .upl-thumb video{width:100%; height:100%; object-fit:cover}
+
+  /* Tickets list */
+  .ticket{display:flex; align-items:flex-start; gap:14px; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.02); margin-bottom:10px; background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent)}
+  .ticket .meta{flex:1}
+  .status{padding:6px 9px; border-radius:999px; font-weight:700; font-size:13px}
+  .status.pending{background:rgba(245,158,11,0.12); color:var(--gold)}
+  .status.approved{background:rgba(34,197,94,0.08); color:var(--success)}
+  .status.inprogress{background:rgba(96,165,250,0.08); color:var(--accent2)}
+  .status.completed{background:rgba(16,185,129,0.08); color:var(--success)}
+  .ticket .actions{display:flex; gap:8px}
+
+  /* small footer */
+  .footer{margin-top:18px; color:var(--muted-sm); font-size:13px; text-align:center}
+  /* subtle hover */
+  a, button{transition:all .18s ease}
+  .role-badge{background:rgba(255,255,255,0.03); padding:6px 8px; border-radius:8px; font-weight:700}
+
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">Fx</div>
+      <div>
+        <h1>FixTrack</h1>
+        <div class="muted">Smart Repair & Maintenance</div>
+      </div>
+    </div>
+
+    <div class="small-card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-weight:800">Welcome Admin</div>
+          <div class="muted">Role: <span id="sidebarRole" class="role-badge">Admin</span></div>
+        </div>
+        <div class="chip" id="openCount">0</div>
+      </div>
+
+      <div class="muted-sm" style="margin-top:10px">Quick actions</div>
+      <div style="display:flex; gap:8px; margin-top:8px">
+        <button class="btn" id="refreshBtn">Refresh Data</button>
+      </div>
+    </div>
+
+    <nav class="nav" aria-label="Main navigation">
+      <a href="#" class="active" data-view="dashboard"><i class="fa-solid fa-chart-pie"></i>Dashboard</a>
+      <a href="#" data-view="reports"><i class="fa-solid fa-list-check"></i>All Reports</a>
+      <a href="#" data-view="technicians"><i class="fa-solid fa-user-gear"></i>Technicians</a>
+      <a href="#" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i>Logout</a>
+    </nav>
+
+    <div class="small-card" style="margin-top:12px">
+      <div style="font-weight:800">Statistics</div>
+      <div class="muted-sm">System Overview</div>
+      <div id="statsOverview" style="margin-top:10px">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- CONTENT -->
+  <main>
+    <div class="header">
+      <div style="display:flex; gap:12px; align-items:center">
+        <div style="display:flex; gap:12px; align-items:center;">
+          <div style="font-size:20px; font-weight:800">FixTrack Admin Dashboard</div>
+          <div class="muted">— Repair & Maintenance Management</div>
+        </div>
+
+        <div style="margin-left:12px" class="muted-sm">CMR COLLEGE OF ENGINEERING AND TECHNOLOGY</div>
+      </div>
+
+      <div style="display:flex; gap:12px; align-items:center">
+        <div class="search">
+          <i class="fa-solid fa-magnifying-glass" style="color:var(--muted)"></i>
+          <input id="searchInput" placeholder="Search complaints, rooms, technicians..." />
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- left column -->
+      <section>
+        <div class="card" id="mainView">
+          <!-- dashboard view -->
+          <div id="dashboardView">
+            <h2>Overview</h2>
+            <div style="display:flex; gap:12px; align-items:center; margin-bottom:12px">
+              <div style="flex:1; display:grid; grid-template-columns:repeat(4,1fr); gap:12px">
+                <div style="padding:12px; border-radius:10px; background:linear-gradient(90deg, rgba(96,165,250,0.06), rgba(110,231,183,0.02));">
+                  <div style="font-size:22px; font-weight:800" id="totalReports">0</div>
+                  <div class="muted-sm">Total Reports</div>
+                </div>
+                <div style="padding:12px; border-radius:10px; background:linear-gradient(90deg, rgba(245,158,11,0.06), rgba(245,158,11,0.02));">
+                  <div style="font-size:22px; font-weight:800" id="pendingReports">0</div>
+                  <div class="muted-sm">Pending</div>
+                </div>
+                <div style="padding:12px; border-radius:10px; background:linear-gradient(90deg, rgba(96,165,250,0.06), rgba(96,165,250,0.02));">
+                  <div style="font-size:22px; font-weight:800" id="inProgressReports">0</div>
+                  <div class="muted-sm">In Progress</div>
+                </div>
+                <div style="padding:12px; border-radius:10px; background:linear-gradient(90deg, rgba(16,185,129,0.06), rgba(16,185,129,0.02));">
+                  <div style="font-size:22px; font-weight:800" id="resolvedReports">0</div>
+                  <div class="muted-sm">Resolved</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap">
+              <div style="flex:1; min-width:300px">
+                <h2 style="margin-top:0">Pending Reports</h2>
+                <div id="pendingList" style="max-height:420px; overflow:auto; padding-right:6px">
+                  <!-- pending reports -->
+                </div>
+              </div>
+
+              <div style="width:300px">
+                <h2 style="margin-top:0">Technicians</h2>
+                <div id="techOverview" style="max-height:420px; overflow:auto; padding-right:6px">
+                  <!-- technicians -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- reports view -->
+          <div id="reportsView" style="display:none">
+            <h2>All Reports</h2>
+            <div id="allReportsList" style="max-height:520px; overflow:auto; padding-right:6px"></div>
+          </div>
+
+          <!-- technicians view -->
+          <div id="techView" style="display:none">
+            <h2>Technicians</h2>
+            <div class="muted-sm">Manage technicians & workloads</div>
+            <div id="techManage" style="margin-top:12px"></div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- right column -->
+      <aside>
+        <div class="card">
+          <h2>Activity</h2>
+          <div class="muted-sm" id="activityFeed">No recent activity</div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h2>System Status</h2>
+          <div style="display:flex; gap:8px; margin-top:8px">
+            <div style="flex:1; padding:10px; border-radius:10px; background:linear-gradient(90deg, rgba(96,165,250,0.04), transparent)">
+              <div style="font-weight:800" id="avgResponseTime">—</div>
+              <div class="muted-sm">Avg Response</div>
+            </div>
+            <div style="flex:1; padding:10px; border-radius:10px; background:linear-gradient(90deg, rgba(110,231,183,0.04), transparent)">
+              <div style="font-weight:800" id="resolutionRate">—</div>
+              <div class="muted-sm">Resolution</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">
+          BY TEAM 09 SIP LAB
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<script>
+// Admin Dashboard JavaScript
+let reports = [];
+let technicians = [];
+let activity = [];
+
+// UI Elements
+const navLinks = document.querySelectorAll('.nav a[data-view]');
+const logoutBtn = document.getElementById('logoutBtn');
+const refreshBtn = document.getElementById('refreshBtn');
+const dashboardView = document.getElementById('dashboardView');
+const reportsView = document.getElementById('reportsView');
+const techView = document.getElementById('techView');
+const totalReports = document.getElementById('totalReports');
+const pendingReports = document.getElementById('pendingReports');
+const inProgressReports = document.getElementById('inProgressReports');
+const resolvedReports = document.getElementById('resolvedReports');
+const pendingList = document.getElementById('pendingList');
+const allReportsList = document.getElementById('allReportsList');
+const techOverview = document.getElementById('techOverview');
+const techManage = document.getElementById('techManage');
+const activityFeed = document.getElementById('activityFeed');
+const statsOverview = document.getElementById('statsOverview');
+const avgResponseTime = document.getElementById('avgResponseTime');
+const resolutionRate = document.getElementById('resolutionRate');
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', () => {
+  // Check if user is admin
+  const userEmail = localStorage.getItem('userEmail');
+  if (!userEmail || userEmail !== 'ceerhod@cmrcet.ac.in') {
+    alert('Unauthorized access. Redirecting to login.');
+    window.location.href = 'login.html';
+    return;
+  }
+
+  // Setup event listeners
+  setupEventListeners();
+  
+  // Load initial data
+  loadData();
+});
+
+function setupEventListeners() {
+  // Navigation
+  navLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      showView(link.dataset.view);
+    });
+  });
+  
+  // Logout
+  logoutBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    localStorage.removeItem('userEmail');
+    window.location.href = 'login.html';
+  });
+  
+  // Refresh
+  refreshBtn.addEventListener('click', loadData);
+}
+
+async function loadData() {
+  try {
+    console.log("Loading data for admin dashboard...");
+    // Load reports
+    const reportsResponse = await fetch('/api/admin/reports');
+    if (reportsResponse.ok) {
+      const data = await reportsResponse.json();
+      console.log("Reports data received:", data);
+      reports = data.reports;
+      renderStats(data.stats);
+      renderPendingReports();
+      renderAllReports();
+    }
+    
+    // Load technicians
+    const techResponse = await fetch('/api/admin/technicians');
+    if (techResponse.ok) {
+      technicians = await techResponse.json();
+      console.log("Technicians data received:", technicians);
+      renderTechOverview();
+      renderTechManage();
+    }
+    
+    // Update activity (mock for now)
+    updateActivity();
+  } catch (error) {
+    console.error('Error loading data:', error);
+  }
+}
+
+function renderStats(stats) {
+  console.log("Rendering stats:", stats);
+  totalReports.textContent = stats.total;
+  pendingReports.textContent = stats.pending;
+  inProgressReports.textContent = stats.inProgress;
+  resolvedReports.textContent = stats.resolved;
+  
+  // Update sidebar stats
+  statsOverview.innerHTML = `
+    <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+      <span class="muted-sm">Total Reports</span>
+      <span style="font-weight:700">${stats.total}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+      <span class="muted-sm">Pending</span>
+      <span style="font-weight:700">${stats.pending}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+      <span class="muted-sm">In Progress</span>
+      <span style="font-weight:700">${stats.inProgress}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between">
+      <span class="muted-sm">Resolved</span>
+      <span style="font-weight:700">${stats.resolved}</span>
+    </div>
+  `;
+}
+
+function renderPendingReports() {
+  const pending = reports.filter(r => r.status === 'pending');
+  pendingList.innerHTML = '';
+  
+  if (pending.length === 0) {
+    pendingList.innerHTML = '<div class="muted-sm">No pending reports</div>';
+    return;
+  }
+  
+  pending.slice(0, 10).forEach(report => {
+    const div = document.createElement('div');
+    div.className = 'ticket';
+    div.innerHTML = `
+      <div style="width:56px; display:flex;align-items:center;justify-content:center; border-radius:8px; background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));">
+        <div style="font-weight:800;color:var(--muted)">${report.category ? report.category[0] : 'R'}</div>
+      </div>
+      <div class="meta">
+        <div style="display:flex; justify-content:space-between; gap:10px; align-items:center">
+          <div>
+            <div style="font-weight:800">${report.title || 'Untitled Report'}</div>
+            <div class="muted-sm">${report.location || 'Unknown Location'}</div>
+          </div>
+          <div style="text-align:right">
+            <div class="muted-sm">${formatDate(report.createdAt)}</div>
+            <div style="height:6px"></div>
+            <div class="status pending">Pending</div>
+          </div>
+        </div>
+        <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center">
+          <div class="muted-sm">By: ${report.studentId || 'Unknown'}</div>
+        </div>
+      </div>
+    `;
+    pendingList.appendChild(div);
+  });
+}
+
+function renderAllReports() {
+  allReportsList.innerHTML = '';
+  
+  if (reports.length === 0) {
+    allReportsList.innerHTML = '<div class="muted-sm">No reports found</div>';
+    return;
+  }
+  
+  reports.forEach(report => {
+    const div = document.createElement('div');
+    div.className = 'ticket';
+    div.innerHTML = `
+      <div style="width:56px; display:flex;align-items:center;justify-content:center; border-radius:8px; background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));">
+        <div style="font-weight:800;color:var(--muted)">${report.category ? report.category[0] : 'R'}</div>
+      </div>
+      <div class="meta">
+        <div style="display:flex; justify-content:space-between; gap:10px; align-items:center">
+          <div>
+            <div style="font-weight:800">${report.title || 'Untitled Report'}</div>
+            <div class="muted-sm">${report.location || 'Unknown Location'}</div>
+            <div class="muted-sm" style="margin-top:6px">${report.description || ''}</div>
+          </div>
+          <div style="text-align:right">
+            <div class="muted-sm">${formatDate(report.createdAt)}</div>
+            <div style="height:6px"></div>
+            <div class="status ${getStatusClass(report.status)}">${report.status}</div>
+          </div>
+        </div>
+        <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center">
+          <div class="muted-sm">By: ${report.studentId || 'Unknown'}</div>
+        </div>
+      </div>
+    `;
+    allReportsList.appendChild(div);
+  });
+}
+
+function renderTechOverview() {
+  techOverview.innerHTML = '';
+  
+  if (technicians.length === 0) {
+    techOverview.innerHTML = '<div class="muted-sm">No technicians found</div>';
+    return;
+  }
+  
+  technicians.forEach(tech => {
+    const div = document.createElement('div');
+    div.className = 'ticket';
+    div.innerHTML = `
+      <div style="width:56px; display:flex;align-items:center;justify-content:center; border-radius:8px; background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));">
+        <div style="font-weight:800;color:var(--muted)">${getInitials(tech.name || tech.email)}</div>
+      </div>
+      <div class="meta">
+        <div style="display:flex; justify-content:space-between; gap:10px; align-items:center">
+          <div>
+            <div style="font-weight:800">${tech.name || tech.email}</div>
+            <div class="muted-sm">${tech.designation || 'Technician'}</div>
+          </div>
+          <div style="text-align:right">
+            <div class="muted-sm">Workload</div>
+            <div style="height:6px"></div>
+            <div class="chip">${tech.workload || 0}</div>
+          </div>
+        </div>
+        <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center">
+          <div class="muted-sm">Resolved: ${tech.resolved || 0}</div>
+        </div>
+      </div>
+    `;
+    techOverview.appendChild(div);
+  });
+}
+
+function renderTechManage() {
+  techManage.innerHTML = '';
+  
+  if (technicians.length === 0) {
+    techManage.innerHTML = '<div class="muted-sm">No technicians found</div>';
+    return;
+  }
+  
+  console.log("Rendering technicians:", technicians);
+  
+  technicians.forEach(tech => {
+    const div = document.createElement('div');
+    div.className = 'small-card';
+    div.style.marginBottom = '8px';
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-weight:800">${tech.name || tech.email}</div>
+          <div class="muted-sm">${tech.designation || 'Technician'}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-weight:800">${tech.workload || 0}</div>
+          <div class="muted-sm">Open</div>
+        </div>
+      </div>
+      <div style="margin-top:8px; display:flex; gap:8px">
+        <div class="muted-sm">Resolved: ${tech.resolved || 0}</div>
+      </div>
+    `;
+    techManage.appendChild(div);
+  });
+}
+
+function updateActivity() {
+  activityFeed.innerHTML = '';
+  activityFeed.innerHTML = `
+    <div style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between">
+        <div class="muted-sm">System initialized</div>
+        <div class="muted-sm">Just now</div>
+      </div>
+    </div>
+    <div style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between">
+        <div class="muted-sm">Last data refresh</div>
+        <div class="muted-sm">${new Date().toLocaleTimeString()}</div>
+      </div>
+    </div>
+  `;
+}
+
+function showView(view) {
+  // Hide all views
+  dashboardView.style.display = 'none';
+  reportsView.style.display = 'none';
+  techView.style.display = 'none';
+  
+  // Show selected view
+  if (view === 'dashboard') {
+    dashboardView.style.display = 'block';
+  } else if (view === 'reports') {
+    reportsView.style.display = 'block';
+  } else if (view === 'technicians') {
+    techView.style.display = 'block';
+  }
+  
+  // Update active nav link
+  navLinks.forEach(link => {
+    if (link.dataset.view === view) {
+      link.classList.add('active');
+    } else {
+      link.classList.remove('active');
+    }
+  });
+}
+
+// Utility functions
+function getStatusClass(status) {
+  if (!status) return '';
+  return status.toLowerCase().replace(/\s/g, '');
+}
+
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  return date.toLocaleDateString();
+}
+
+function getInitials(name) {
+  if (!name) return 'U';
+  return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+}
+
+// Refresh data every 30 seconds
+setInterval(loadData, 30000);
+</script>
+</body>
+</html>

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register - FixTrack</title>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      height: 100vh;
+      background: linear-gradient(135deg, #0a0f2c, #0e2a47, #163b67);
+      background-size: 300% 300%;
+      animation: gradientShift 10s ease infinite;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      color: white;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 60px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      padding: 50px;
+      border-radius: 25px;
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .illustration {
+      width: 330px;
+      height: auto;
+      animation: float 4s ease-in-out infinite;
+      filter: drop-shadow(0 0 20px rgba(0,255,255,0.5));
+      border-radius: 10px;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .card {
+      width: 320px;
+      text-align: center;
+    }
+
+    .card h2 {
+      font-size: 28px;
+      margin-bottom: 20px;
+      color: #00e0ff;
+      text-shadow: 0 0 15px rgba(0, 224, 255, 0.6);
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .input-container {
+      position: relative;
+    }
+
+    .input-container input {
+      width: 100%;
+      padding: 12px 45px 12px 15px;
+      border: none;
+      border-radius: 10px;
+      outline: none;
+      font-size: 15px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      transition: 0.3s ease;
+    }
+
+    .input-container input::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .input-container input:focus {
+      background: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 10px #00e0ff;
+    }
+
+    .input-container img {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 22px;
+      opacity: 0.8;
+      filter: brightness(0) invert(1);
+    }
+
+    button {
+      background: linear-gradient(135deg, #0072ff, #00e0ff);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-weight: 600;
+      box-shadow: 0 0 15px rgba(0, 224, 255, 0.4);
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 25px rgba(0, 224, 255, 0.8);
+    }
+
+    p {
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    a {
+      color: #00e0ff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 800px) {
+      .container {
+        flex-direction: column;
+        padding: 30px;
+      }
+      .illustration {
+        width: 220px;
+      }
+.input-container select {
+  width: 100%;
+  padding: 12px 45px 12px 15px;
+  border: none;
+  border-radius: 10px;
+  outline: none;
+  font-size: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  box-shadow: 0 0 10px rgba(0, 224, 255, 0.25);
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  transition: background 0.3s, box-shadow 0.3s;
+  cursor: pointer;
+  margin-bottom: 0;
+}
+
+.input-container select:focus {
+  background: rgba(255, 255, 255, 0.17);
+  box-shadow: 0 0 20px #00e0ff;
+  color: white;
+}
+
+.input-container select option {
+  color: #222;
+  background: #e7fcff;
+}
+
+.input-container select option:first-child {
+  color: rgba(255,255,255,0.6);
+}
+
+.input-container {
+  position: relative;
+}
+
+/* Custom arrow: For consistent look across browsers */
+.input-container::after {
+  content: '';
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  width: 0; 
+  height: 0; 
+  pointer-events: none;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 7px solid #00e0ff;
+  transform: translateY(-50%);
+}
+
+.input-container select {
+  background-position: right 18px center;
+  background-repeat: no-repeat;
+}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <!-- 👨‍🔧 Technician Illustration -->
+    <img 
+      src="https://ik.imagekit.io/f9rttk9xr/image.png?updatedAt=1759909043990"
+      alt="Technician with Tools"
+      class="illustration"
+    />
+
+    <div class="card">
+
+      <h2>Register - FixTrack</h2>
+      <form id="registerForm">
+        <div class="input-container">
+          <input type="email" id="registerEmail" placeholder="College Email" required />
+          <img src="https://cdn-icons-png.flaticon.com/512/732/732200.png" alt="Email icon" />
+        </div>
+	<div class="input-container">
+  <select id="registerRole" required>
+    <option value="">Select Role</option>
+    <option value="student">Student</option>
+    <option value="technician">Technician</option>
+    <option value="admin">Admin</option>
+  </select>
+</div>
+        <div class="input-container">
+          <input type="password" id="registerPassword" placeholder="Password" required />
+          <img src="https://cdn-icons-png.flaticon.com/512/3064/3064155.png" alt="Password icon" />
+        </div>
+        <button type="submit">Register</button>
+      </form>
+      <p>Already have an account? <a href="login.html">Login here</a></p>
+    </div>
+  </div>
+
+  <script>
+document.getElementById("registerForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const email = document.getElementById("registerEmail").value.trim();
+  const password = document.getElementById("registerPassword").value.trim();
+  const role = document.getElementById("registerRole").value;
+  const message = document.getElementById("registerMessage");
+
+  if (!email.endsWith("@cmrcet.ac.in")) {
+    alert("Please use your college email (@cmrcet.ac.in)");
+    return;
+  }
+
+  if (!role) {
+    alert("Please select a role (Student or Technician)");
+    return;
+  }
+
+  const response = await fetch("/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password, role }),
+  });
+
+  const data = await response.json();
+
+  if (response.ok) {
+    alert("Registration successful! Proceed to login.");
+    window.location.href = "login.html";
+  } else {
+    message.textContent = data.message || "Registration failed";
+  }
+});
+  </script>
+</body>
+</html>

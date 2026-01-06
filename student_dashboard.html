@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FixTrack Student Dashboard</title>
+  <!-- Chart.js library removed as requested -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
+    body {
+      background: #111931;
+      margin: 0;
+      color: #e1f5ff;
+      font-family: 'Poppins',sans-serif;
+      min-height: 100vh;
+    }
+    /* Sidebar styles and other CSS omitted for brevity - same as before */
+    .dashboard-layout { display: flex; min-height: 100vh; }
+    .sidebar { width: 320px; background: linear-gradient(135deg,#19335A 85%,#16222A 100%); box-shadow: 0 0 26px #0e2a47; color: #bddefc; display: flex; flex-direction: column; padding: 32px 16px 0 16px; min-height: 100vh; }
+    .sidebar-header { display: flex; gap: 12px; align-items: center; }
+    .logo-block { background: linear-gradient(135deg,#43f3e3 40%,#6669f9 100%); border-radius: 14px; width: 54px; height: 54px; font-size: 2rem; font-weight: bold; color: white; box-shadow: 0 0 24px #43f3e3; display: flex; align-items: center; justify-content: center; }
+    .welcome-card { margin: 28px 0 18px 0; background: #20345e; border-radius: 16px; box-shadow: 0 0 21px #4fddf3c4; padding: 18px 16px; }
+    .welcome-card .role-chip { background: #08203a; color: #43f3e3; border-radius: 7px; padding: 5px 18px; font-weight: 700; margin-right: 10px; }
+    .quick-actions { display: flex; gap: 10px; margin-top: 14px; }
+    .quick-actions button { background: linear-gradient(90deg,#43f3e3,#6669f9); border: none; border-radius: 9px; color: #19335A; font-weight: bold; padding: 10px 18px; box-shadow: 0 0 12px #43f3e3b5; cursor: pointer; }
+    .sidebar-nav { margin: 24px 0 15px 0; display: flex; flex-direction: column; gap: 7px; }
+    .sidebar-nav a { color: #b0cbee; text-decoration: none; padding: 8px 15px; border-radius: 7px; font-size: 1.06rem; transition: background 0.22s,color 0.22s; }
+    .sidebar-nav a.active,.sidebar-nav a:hover { background: #212F4A; color: #e3fbff; }
+    .tech-box { margin-top: auto; background: #1D2945; border-radius: 12px; padding: 11px 16px; box-shadow: 0 0 13px #43f3e38a; }
+    .tech-list { margin-top: 8px; display: flex; flex-direction: column; gap: 12px; }
+    .tech-row { display: flex; align-items: center; gap: 8px; font-size: 1.02rem; }
+    .tech-avatar { background: #43f3e3; color: #19335A; font-weight: bold; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 1.05rem; }
+    .main-panel { flex: 1; padding: 38px 38px 0 38px; background: transparent; display: flex; flex-direction: column; gap: 24px; }
+    .overview-block { display: flex; gap: 25px; margin-bottom: 25px; background: #162741; border-radius: 14px; padding: 18px 25px; box-shadow: 0 0 20px #43f3e36a; align-items: center; }
+    .overview-item { flex: 1; color: #e3fbff; text-align: center; margin: 0 10px; }
+    .overview-label { font-size: 1.04rem; color: #b0cbee; margin-bottom: 7px; letter-spacing:0.02em }
+    .overview-value { font-size: 1.85rem; color: #43f3e3; font-weight: 700; }
+    .recent-row-block { display: flex; gap: 32px; flex-wrap: wrap; background: #172741; border-radius: 18px; box-shadow: 0 0 16px #43f3e322; padding: 29px 18px; }
+    .report-list {min-width:240px;max-width:370px;flex: 1;}
+    .report-list h2 {font-weight: 700;color:#eafffb;font-size:1.1rem;margin-bottom:13px;}
+    .report-card { background: #151d36; border-radius: 12px; margin-bottom: 12px; padding: 13px 16px; color: #c7eaff; box-shadow: 0 0 6px #43f3e328; font-size: 1.03rem; position:relative }
+    .report-title { font-weight: bold; font-size: 1.12rem; color: #e3fbff; }
+    .report-meta { color: #b0cbee; font-size: 0.97rem; }
+    .status-chip { display: inline-block; font-size: 0.96rem; font-weight: 700; border-radius: 7px; padding: 2px 14px; color: #fff; margin-top: 7px; margin-right:12px; }
+    .status-pending { background:#534211; color:#f0d974; }
+    .status-approved { background:#11443a; color:#86ffea; }
+    .status-progress { background:#254d6d; color:#50e7f9; }
+    .report-view-btn { background: #1e335c; color: #d8f2ff; border-radius: 7px; padding: 4px 18px; border: none; font-weight: 600; margin-top: 8px; font-size: 0.97rem; cursor: pointer; }
+    .report-view-btn:hover {background:#43f3e3a6;color:#19335A}
+    .chart-panel { flex:1; min-width:320px; display: flex; flex-direction: column; align-items: center; justify-content: center; background:#1e2945;border-radius:15px; box-shadow:0 0 16px #43f3e312; padding: 20px 0; }
+    .chart-panel h3 {color:#b5eafd;margin-bottom:12px;}
+    .issue-legend {margin-top:13px;font-size:1.01rem;}
+    .legend-block {display:inline-block;width:18px;height:18px;border-radius:6px;vertical-align:middle;}
+    .legend-it {background:#63aaff;}
+    .legend-elec {background:#7ee5b2;}
+    @media(max-width:900px){ .main-panel{padding:10px;} .sidebar{width:100%;} .recent-row-block{flex-direction:column;gap:18px;} .overview-block{flex-direction:column;} }
+    @media(max-width:600px){ .main-panel{padding:5px;} .sidebar{padding:8px;} }
+  </style>
+</head>
+<body>
+<div id="newReportModal" style="display:none; position:fixed; left:0;top:0;width:100vw;height:100vh;background:rgba(18,20,34,.88);z-index:999;align-items:center;justify-content:center;">
+  <form id="reportForm" style="background:#19335A;padding:35px 25px;border-radius:18px;max-width:360px;width:95%;display:flex;flex-direction:column;gap:12px;">
+    <h2 style="color:#41f2e4;">New Report</h2>
+    <input id="reportTitle" type="text" placeholder="Short Title..." required>
+    <select id="reportBlock" required>
+      <option value="" disabled selected>Select Block</option>
+      <option>Block 1</option>
+      <option>Block 2</option>
+      <option>Block 3</option>
+      <option>Block 4</option>
+    </select>
+    <select id="reportFloor" required>
+      <option value="" disabled selected>Select Floor</option>
+      <option>Ground</option>
+      <option>First</option>
+      <option>Second</option>
+      <option>Third</option>
+      <option>Fourth</option>
+    </select>
+    <input id="reportRoomNo" type="text" placeholder="Room Number..." required>
+    <input id="reportLocation" type="text" placeholder="Location (optional)">
+    <select id="reportCategory" required>
+      <option value="" disabled selected>Select Category</option>
+      <option value="IT">IT</option>
+      <option value="Electrical">Electrical</option>
+      <option value="Plumbing">Plumbing</option>
+      <option value="Maintenance">Maintenance</option>
+    </select>
+    <select id="reportPriority">
+      <option>High</option>
+      <option>Medium</option>
+      <option>Low</option>
+    </select>
+    <textarea id="reportDesc" placeholder="Describe issue..." required></textarea>
+    <div style="display:flex;gap:13px;">
+      <button type="submit" style="background:#41f2e4;border:none;padding:8px 24px;border-radius:7px;font-weight:bold;font-size:1.06em;cursor:pointer;">Submit</button>
+      <button type="button" id="closeModal" style="background:#13294d;color:#dcd8ed;border:none;padding:8px 22px;border-radius:7px;cursor:pointer;">Cancel</button>
+    </div>
+  </form>
+</div>
+<div class="dashboard-layout">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-block">Fx</div>
+      <div>
+        <div style="font-size:1.12rem;font-weight:700;">FixTrack</div>
+        <div style="font-size:0.99rem; color:#a1d2f4;margin-top:-2px;">Smart Repair & Maintenance</div>
+      </div>
+    </div>
+    <div class="welcome-card">
+      <div>Welcome</div>
+      <div>
+        <span class="role-chip">Student</span>
+        <span style="float:right;" id="openReportsCount">0</span>
+      </div>
+      <div class="quick-actions">
+        <button id="newReportBtn">New Report</button>
+        <button id="refreshReportsBtn">Refresh Reports</button>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="active" href="#" id="dashboardLink">Dashboard</a>
+      <a href="#" id="reportsLink">Reports</a>
+      <a href="#" id="submitIssueLink">Submit Issue</a>
+      <a href="#" id="repairHistoryLink">Repair History</a>
+      <a href="#" id="logoutBtn">Logout</a>
+    </nav>
+    <div class="tech-box">
+      <div style="font-weight:700;color:#43f3e3;">Technicians</div>
+      <div class="tech-list" id="techList">
+        <!-- Technician list will be populated dynamically -->
+      </div>
+    </div>
+  </aside>
+  <main class="main-panel">
+    <section class="overview-block">
+      <div class="overview-item"><div class="overview-label">Total Reports</div><div class="overview-value" id="totalReportsCount">0</div></div>
+      <div class="overview-item"><div class="overview-label">Open</div><div class="overview-value" id="openReports">0</div></div>
+      <div class="overview-item"><div class="overview-label">Avg Repair (hrs)</div><div class="overview-value">--</div></div>
+    </section>
+    <section class="recent-row-block">
+      <div class="report-list"><h2>Recent Reports</h2></div>
+      <div class="chart-panel">
+        <h3>Recent Activity</h3>
+        <div class="muted-sm" style="padding:20px;text-align:center;">
+          <div style="margin-bottom:15px;">📋</div>
+          <div>Submit a new report to get started</div>
+          <button id="newReportBtn" style="margin-top:15px;background:linear-gradient(90deg,#43f3e3,#6669f9);border:none;border-radius:9px;color:#19335A;font-weight:bold;padding:8px 16px;cursor:pointer;">New Report</button>
+        </div>
+      </div>
+    </section>
+    <!-- Reports Section -->
+    <section class="recent-row-block" id="reportsSection" style="display:none;">
+      <div class="report-list">
+        <h2>All Reports <button id="refreshAllReportsBtn" style="float:right;background:#1e335c;color:#d8f2ff;border-radius:7px;padding:2px 8px;border:none;font-size:0.8rem;cursor:pointer;">Refresh</button></h2>
+        <div id="allReportsList"></div>
+      </div>
+      <div class="chart-panel">
+        <h3>Report Status</h3>
+        <div class="issue-legend" style="margin-top:20px;">
+          <div style="margin-bottom:10px;"><span class="legend-block status-pending" style="width:12px;height:12px;"></span> Pending</div>
+          <div style="margin-bottom:10px;"><span class="legend-block status-progress" style="width:12px;height:12px;"></span> In Progress</div>
+          <div><span class="legend-block status-approved" style="width:12px;height:12px;"></span> Resolved</div>
+        </div>
+      </div>
+    </section>
+    <!-- Repair History Section -->
+    <section class="recent-row-block" id="repairHistorySection" style="display:none;">
+      <div class="report-list">
+        <h2>Repair History <button id="refreshHistoryBtn" style="float:right;background:#1e335c;color:#d8f2ff;border-radius:7px;padding:2px 8px;border:none;font-size:0.8rem;cursor:pointer;">Refresh</button></h2>
+        <div id="repairHistoryList"></div>
+      </div>
+      <div class="chart-panel">
+        <h3>History Summary</h3>
+        <div id="historySummary" class="muted-sm" style="padding:15px;">
+          View all your resolved issues and their details here.
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    // Check if user is logged in
+    const userEmail = localStorage.getItem("userEmail");
+    console.log("User email from localStorage:", userEmail);
+    
+    if (!userEmail) {
+      console.log("No user email found, redirecting to login");
+      window.location.href = "login.html";
+      return;
+    }
+
+    // Extract username from email (part before @)
+    const username = userEmail.split('@')[0];
+    const studentId = userEmail; // Still using email as student ID for database operations
+
+    console.log("Student ID:", studentId);
+    
+    // Update welcome message with username
+    const welcomeElement = document.querySelector('.welcome-card > div:first-child');
+    if (welcomeElement) {
+      welcomeElement.innerHTML = `Welcome, ${username}`;
+    }
+    
+    // Generate initials for avatar if needed
+    const nameParts = username.split('.');
+    const initials = nameParts.map(part => part.charAt(0).toUpperCase()).join('');
+    // Note: Student dashboard doesn't have an avatar, but we could add one if needed
+
+    let allReports = [];
+    let repairHistory = [];
+    let technicians = []; // Store technicians data
+
+    // Navigation elements
+    const dashboardLink = document.getElementById('dashboardLink');
+    const reportsLink = document.getElementById('reportsLink');
+    const submitIssueLink = document.getElementById('submitIssueBtn'); // This already exists as newReportBtn
+    const repairHistoryLink = document.getElementById('repairHistoryLink');
+  
+    // Section elements
+    const dashboardSection = document.querySelector('.recent-row-block:not([id])'); // The first recent-row-block
+    const reportsSection = document.getElementById('reportsSection');
+    const repairHistorySection = document.getElementById('repairHistorySection');
+  
+    // Button elements
+    const newReportBtn = document.getElementById('newReportBtn');
+    const refreshReportsBtn = document.getElementById('refreshReportsBtn');
+    const refreshAllReportsBtn = document.getElementById('refreshAllReportsBtn');
+    const refreshHistoryBtn = document.getElementById('refreshHistoryBtn');
+
+    // Function to fetch technicians
+    async function fetchTechnicians() {
+      try {
+        const response = await fetch('/technicians/all');
+        if(response.ok) {
+          technicians = await response.json();
+          renderTechnicians();
+        } else {
+          console.error('Failed to fetch technicians');
+        }
+      } catch (err) {
+        console.error('Error fetching technicians:', err);
+      }
+    }
+
+    // Function to render technicians in the sidebar
+    function renderTechnicians() {
+      const techListElement = document.getElementById('techList');
+      if (!techListElement) return;
+
+      if (technicians.length === 0) {
+        techListElement.innerHTML = '<div class="tech-row">No technicians found</div>';
+        return;
+      }
+
+      techListElement.innerHTML = technicians.map(tech => {
+        // Generate avatar initials
+        const nameParts = (tech.name || tech.email.split('@')[0]).split(' ');
+        const initials = nameParts.map(part => part.charAt(0).toUpperCase()).join('');
+        
+        // For demo purposes, we'll use random workload values
+        // In a real application, this would be calculated from actual reports
+        const workload = Math.floor(Math.random() * 5); // Random workload between 0-4
+        
+        return `
+          <div class="tech-row">
+            <span class="tech-avatar">${initials}</span>
+            <span>${tech.name || tech.email.split('@')[0]}<br>
+              <span style="font-size:0.92em;color:#43f3e3;">${tech.designation || 'General Technician'}</span>
+            </span>
+            <span class="technician-workload" style="margin-left:auto;">WL: ${workload}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Function to show a specific section and hide others
+    function showSection(section) {
+      // Hide all sections
+      dashboardSection.style.display = 'none';
+      reportsSection.style.display = 'none';
+      repairHistorySection.style.display = 'none';
+    
+      // Show the requested section
+      section.style.display = 'flex';
+    
+      // Update active link
+      dashboardLink.classList.remove('active');
+      reportsLink.classList.remove('active');
+      repairHistoryLink.classList.remove('active');
+    
+      if (section === dashboardSection) {
+        dashboardLink.classList.add('active');
+      } else if (section === reportsSection) {
+        reportsLink.classList.add('active');
+      } else if (section === repairHistorySection) {
+        repairHistoryLink.classList.add('active');
+      }
+    }
+
+    // Navigation event handlers
+    dashboardLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      showSection(dashboardSection);
+      fetchReports(); // Refresh dashboard data
+    });
+
+    reportsLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      showSection(reportsSection);
+      fetchAllReports(); // Load all reports when navigating to this section
+    });
+
+    repairHistoryLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      showSection(repairHistorySection);
+      fetchRepairHistory(); // Load repair history when navigating to this section
+    });
+
+    // Submit issue link is the same as newReportBtn
+    document.getElementById('submitIssueLink').addEventListener('click', function(e) {
+      e.preventDefault();
+      newReportBtn.click();
+    });
+
+    async function fetchReports() {
+      try {
+        console.log("Fetching reports for studentId:", studentId);
+        const response = await fetch(`/students/reports/${encodeURIComponent(studentId)}`);
+        console.log("Response status:", response.status);
+      
+        if(response.ok) {
+          const reports = await response.json();
+          console.log("Reports fetched:", reports);
+        
+          // Check if reports is an array
+          if (!Array.isArray(reports)) {
+            console.error("Expected array of reports, got:", typeof reports, reports);
+            alert("Error: Invalid data format received from server");
+            return;
+          }
+        
+          renderReports(reports);
+          // Check for resolved reports and alert user
+          checkForResolvedReports(reports);
+        } else {
+          const errorText = await response.text();
+          console.error("Failed to fetch reports:", response.status, errorText);
+          alert(`Failed to fetch your reports. Server responded with status ${response.status}. Please try again.`);
+        }
+      } catch (err) {
+        console.error("Error fetching reports:", err);
+        alert(`Error fetching your reports: ${err.message}. Please check your connection and try again.`);
+      }
+    }
+
+    async function fetchAllReports() {
+      try {
+        const response = await fetch(`/students/reports/${encodeURIComponent(studentId)}`);
+        if(response.ok) {
+          allReports = await response.json();
+          renderAllReports(allReports);
+        } else {
+          document.getElementById('allReportsList').innerHTML = '<div class="report-card">Failed to fetch reports</div>';
+        }
+      } catch (err) {
+        document.getElementById('allReportsList').innerHTML = '<div class="report-card">Error fetching reports</div>';
+      }
+    }
+
+    async function fetchRepairHistory() {
+      try {
+        const response = await fetch(`/students/reports/${encodeURIComponent(studentId)}`);
+        if(response.ok) {
+          const reports = await response.json();
+          // Filter for resolved reports
+          repairHistory = reports.filter(report => report.status === 'resolved');
+          renderRepairHistory(repairHistory);
+        } else {
+          document.getElementById('repairHistoryList').innerHTML = '<div class="report-card">Failed to fetch repair history</div>';
+        }
+      } catch (err) {
+        document.getElementById('repairHistoryList').innerHTML = '<div class="report-card">Error fetching repair history</div>';
+      }
+    }
+
+    function checkForResolvedReports(reports) {
+      // Check if any reports have been resolved since last check
+      const resolvedReports = reports.filter(report => report.status === 'resolved');
+      if (resolvedReports.length > 0) {
+        // Check localStorage for previously notified reports
+        const notifiedReports = JSON.parse(localStorage.getItem('notifiedReports') || '[]');
+        const newResolvedReports = resolvedReports.filter(report => 
+          !notifiedReports.includes(report._id)
+        );
+      
+        if (newResolvedReports.length > 0) {
+          // Alert user about newly resolved reports
+          newResolvedReports.forEach(report => {
+            alert(`Your report "${report.title}" has been resolved!`);
+          });
+        
+          // Update notified reports in localStorage
+          const updatedNotifiedReports = [
+            ...notifiedReports,
+            ...newResolvedReports.map(report => report._id)
+          ];
+          localStorage.setItem('notifiedReports', JSON.stringify(updatedNotifiedReports));
+        }
+      }
+    }
+
+    // Store reports data for reference
+    let allReportsData = [];
+    let repairHistoryData = [];
+    
+    function renderReports(reports) {
+      try {
+        allReportsData = reports; // Store for reference
+        
+        const container = document.querySelector('.report-list');
+        if(!container) {
+          console.error("Report list container not found");
+          return;
+        }
+      
+        console.log("Rendering reports:", reports);
+      
+        // Check if reports is an array
+        if (!Array.isArray(reports)) {
+          console.error("Expected array of reports, got:", typeof reports, reports);
+          container.innerHTML = '<div class="report-card" style="text-align:center;">Error: Invalid data format</div>';
+          return;
+        }
+      
+        // Filter out resolved reports that were viewed more than a day ago
+        const filteredReports = reports.filter(report => {
+          if (report.status !== 'resolved') return true;
+          if (!report.resolvedViewed) return true;
+          if (!report.resolvedViewedAt) return true;
+          
+          const viewedTime = new Date(report.resolvedViewedAt).getTime();
+          const currentTime = new Date().getTime();
+          const oneDay = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+          
+          // If less than a day has passed since viewing, show the report
+          return (currentTime - viewedTime) < oneDay;
+        });
+      
+        if (filteredReports.length === 0) {
+          container.innerHTML = '<h2>Recent Reports</h2><div class="report-card" style="text-align:center;">No reports found</div>';
+          document.getElementById('totalReportsCount').textContent = '0';
+          document.getElementById('openReports').textContent = '0';
+          document.getElementById('openReportsCount').textContent = '0';
+          return;
+        }
+      
+        container.innerHTML = '<h2>Recent Reports</h2>' + filteredReports.map(r => {
+          // Create technician info if available
+          let technicianInfo = '';
+          if (r.technicianName) {
+            technicianInfo = `<div class="report-meta">Technician: ${r.technicianName}`;
+            if (r.technicianDesignation) {
+              technicianInfo += ` (${r.technicianDesignation})`;
+            }
+            technicianInfo += '</div>';
+          }
+          
+          return `
+          <div class="report-card">
+            <div class="report-title">${r.title || 'Untitled Report'}</div>
+            <div class="report-meta">${r.block || ''} ${r.floor ? ', Floor: ' + r.floor : ''} ${r.room ? ', Room: ' + r.room : ''}</div>
+            <div class="report-meta">${r.location || ''} • ${r.category || 'Maintenance'} • Priority: ${r.priority || 'Medium'}</div>
+            ${technicianInfo}
+            <span class="status-chip ${r.status === 'pending' ? 'status-pending' : r.status === 'in-progress' ? 'status-progress' : 'status-approved'}">${r.status || 'pending'}</span>
+            <button class="report-view-btn" data-report-id="${r._id}">View</button>
+          </div>
+        `}).join('');
+      
+        document.getElementById('totalReportsCount').textContent = filteredReports.length;
+        const openReportsCount = filteredReports.filter(r => r.status !== "resolved").length;
+        document.getElementById('openReports').textContent = openReportsCount;
+        document.getElementById('openReportsCount').textContent = openReportsCount;
+      } catch (err) {
+        console.error("Error rendering reports:", err);
+        const container = document.querySelector('.report-list');
+        if (container) {
+          container.innerHTML = '<h2>Recent Reports</h2><div class="report-card" style="text-align:center;">Error displaying reports</div>';
+        }
+      }
+    }
+
+    function renderAllReports(reports) {
+      allReportsData = reports; // Store for reference
+      
+      const container = document.getElementById('allReportsList');
+      if (!container) return;
+    
+      // Filter out resolved reports that were viewed more than a day ago
+      const filteredReports = reports.filter(report => {
+        if (report.status !== 'resolved') return true;
+        if (!report.resolvedViewed) return true;
+        if (!report.resolvedViewedAt) return true;
+        
+        const viewedTime = new Date(report.resolvedViewedAt).getTime();
+        const currentTime = new Date().getTime();
+        const oneDay = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+        
+        // If less than a day has passed since viewing, show the report
+        return (currentTime - viewedTime) < oneDay;
+      });
+    
+      if (filteredReports.length === 0) {
+        container.innerHTML = '<div class="report-card" style="text-align:center;">No reports found</div>';
+        return;
+      }
+    
+      container.innerHTML = filteredReports.map(r => {
+        // Create technician info if available
+        let technicianInfo = '';
+        if (r.technicianName) {
+          technicianInfo = `<div class="report-meta">Technician: ${r.technicianName}`;
+          if (r.technicianDesignation) {
+            technicianInfo += ` (${r.technicianDesignation})`;
+          }
+          technicianInfo += '</div>';
+        }
+        
+        return `
+        <div class="report-card">
+          <div class="report-title">${r.title}</div>
+          <div class="report-meta">${r.block || ''} ${r.floor ? ', Floor: ' + r.floor : ''} ${r.room ? ', Room: ' + r.room : ''}</div>
+          <div class="report-meta">${r.location || ''} • ${r.category} • Priority: ${r.priority || 'Medium'}</div>
+          <div class="report-meta">Submitted: ${new Date(r.createdAt).toLocaleDateString()}</div>
+          ${technicianInfo}
+          <span class="status-chip ${r.status === 'pending' ? 'status-pending' : r.status === 'in-progress' ? 'status-progress' : 'status-approved'}">${r.status}</span>
+          <button class="report-view-btn" data-report-id="${r._id}">View Details</button>
+        </div>
+      `}).join('');
+    }
+
+    function renderRepairHistory(reports) {
+      repairHistoryData = reports; // Store for reference
+      
+      const container = document.getElementById('repairHistoryList');
+      if (!container) return;
+    
+      // Filter for resolved reports
+      const resolvedReports = reports.filter(report => report.status === 'resolved');
+      
+      // Filter out resolved reports that were viewed more than a day ago
+      const filteredReports = resolvedReports.filter(report => {
+        if (!report.resolvedViewed) return true;
+        if (!report.resolvedViewedAt) return true;
+        
+        const viewedTime = new Date(report.resolvedViewedAt).getTime();
+        const currentTime = new Date().getTime();
+        const oneDay = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+        
+        // If less than a day has passed since viewing, show the report
+        return (currentTime - viewedTime) < oneDay;
+      });
+    
+      if (filteredReports.length === 0) {
+        container.innerHTML = '<div class="report-card" style="text-align:center;">No repair history found</div>';
+        return;
+      }
+    
+      container.innerHTML = filteredReports.map(r => {
+        // Create technician info if available
+        let technicianInfo = '';
+        if (r.technicianName) {
+          technicianInfo = `<div class="report-meta">Technician: ${r.technicianName}`;
+          if (r.technicianDesignation) {
+            technicianInfo += ` (${r.technicianDesignation})`;
+          }
+          technicianInfo += '</div>';
+        }
+        
+        return `
+        <div class="report-card">
+          <div class="report-title">${r.title}</div>
+          <div class="report-meta">${r.block || ''} ${r.floor ? ', Floor: ' + r.floor : ''} ${r.room ? ', Room: ' + r.room : ''}</div>
+          <div class="report-meta">${r.location || ''} • ${r.category} • Priority: ${r.priority || 'Medium'}</div>
+          <div class="report-meta">Resolved: ${new Date(r.updatedAt || r.createdAt).toLocaleDateString()}</div>
+          ${technicianInfo}
+          <span class="status-chip status-approved">Resolved</span>
+          <button class="report-view-btn" data-report-id="${r._id}">View Details</button>
+        </div>
+      `}).join('');
+    }
+
+    // Event handlers for buttons
+    newReportBtn.onclick = function() {
+      document.getElementById('newReportModal').style.display = 'flex';
+    };
+  
+    refreshReportsBtn.onclick = fetchReports;
+    refreshAllReportsBtn.onclick = fetchAllReports;
+    refreshHistoryBtn.onclick = fetchRepairHistory;
+
+    document.getElementById('closeModal').onclick = function() {
+      document.getElementById('newReportModal').style.display = 'none';
+    };
+
+    document.getElementById('reportForm').onsubmit = async function(e) {
+      e.preventDefault();
+      const report = {
+        title: document.getElementById('reportTitle').value,
+        block: document.getElementById('reportBlock').value,
+        floor: document.getElementById('reportFloor').value,
+        room: document.getElementById('reportRoomNo').value,
+        location: document.getElementById('reportLocation').value,
+        category: document.getElementById('reportCategory').value,
+        priority: document.getElementById('reportPriority').value,
+        description: document.getElementById('reportDesc').value,
+        studentId: studentId
+      };
+      try {
+        const response = await fetch('/students/reports', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(report)
+        });
+        if(response.ok) {
+          alert("Report submitted successfully");
+          document.getElementById('newReportModal').style.display = 'none';
+          document.getElementById('reportForm').reset();
+          fetchReports();
+          // Also refresh all reports section if it's visible
+          if (reportsSection.style.display !== 'none') {
+            fetchAllReports();
+          }
+        } else {
+          alert("Failed to submit report");
+        }
+      } catch(e) {
+        alert("Error submitting report");
+      }
+    };
+
+    // Add logout functionality
+    document.getElementById('logoutBtn').onclick = function() {
+      localStorage.removeItem("userEmail");
+      localStorage.removeItem("notifiedReports"); // Clear notified reports on logout
+      window.location.href = "login.html";
+    };
+
+    document.addEventListener('click', function(e){
+      if(e.target.classList.contains('report-view-btn')) {
+        const reportId = e.target.getAttribute('data-report-id');
+        
+        // Find the report in our data
+        let report = allReportsData.find(r => r._id === reportId);
+        if (!report) {
+          report = repairHistoryData.find(r => r._id === reportId);
+        }
+        
+        if (report) {
+          // Build details string
+          let details = `Report Details:\n${report.title || 'Untitled Report'}\n`;
+          details += `${report.block || ''} ${report.floor ? ', Floor: ' + report.floor : ''} ${report.room ? ', Room: ' + report.room : ''}\n`;
+          details += `${report.location || ''} • ${report.category || 'Maintenance'} • Priority: ${report.priority || 'Medium'}\n`;
+          
+          // Add technician info if available
+          if (report.technicianName) {
+            details += `Technician: ${report.technicianName}`;
+            if (report.technicianDesignation) {
+              details += ` (${report.technicianDesignation})`;
+            }
+            details += '\n';
+          }
+          
+          details += `Status: ${report.status || 'pending'}\n`;
+          details += `Submitted: ${new Date(report.createdAt).toLocaleDateString()}\n`;
+          
+          if (report.status === 'resolved' && report.updatedAt) {
+            details += `Resolved: ${new Date(report.updatedAt).toLocaleDateString()}\n`;
+          }
+          
+          alert(details);
+          
+          // If this is a resolved report, mark it as viewed
+          if (report.status === 'resolved' && !report.resolvedViewed) {
+            // Update the report in the database to mark it as viewed
+            fetch(`/api/reports/${reportId}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                resolvedViewed: true,
+                resolvedViewedAt: new Date()
+              })
+            }).then(() => {
+              // Update local data
+              report.resolvedViewed = true;
+              report.resolvedViewedAt = new Date();
+              
+              // Refresh the display
+              fetchReports();
+            });
+          }
+        }
+      }
+    });
+
+    // Fetch reports on page load
+    fetchReports();
+    fetchTechnicians(); // Fetch technicians on page load
+  
+    // Show dashboard section by default
+    showSection(dashboardSection);
+  
+    // Refresh reports every 30 seconds
+    setInterval(fetchReports, 30000);
+    // Refresh technicians every minute
+    setInterval(fetchTechnicians, 60000);
+  } catch (err) {
+    console.error("Error initializing student dashboard:", err);
+    alert("Error initializing dashboard. Please try refreshing the page.");
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1011 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>FixTrack — Smart College Repair & Maintenance Management</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<!-- Font Awesome for icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<!-- Chart.js for charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  :root{
+    --bg:#183056;
+    --card:#0b1220;
+    --muted:#98a0b3;
+    --accent1:#6ee7b7;
+    --accent2:#60a5fa;
+    --glass: rgba(98, 197, 230, 0.03);
+    --glass-2: rgba(98, 197, 230, 0.03);
+    --success:#238a68;
+    --danger:#ef4444;
+    --gold:#bd9144;
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background: linear-gradient(180deg, #071024 0%, #08132a 60%);
+    color:#e6eef8;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    padding:24px;
+  }
+
+  /* Layout */
+  .app{
+    max-width:1200px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns: 260px 1fr;
+    gap:20px;
+  }
+  @media (max-width:900px){
+    .app{grid-template-columns:1fr; padding-bottom:80px}
+    .sidebar{position:sticky; top:16px; z-index:2}
+  }
+
+  /* Sidebar */
+  .sidebar{
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+    border:1px solid rgba(255,255,255,0.04);
+    border-radius:12px;
+    padding:18px;
+    height:fit-content;
+    backdrop-filter: blur(8px);
+  }
+  .brand{
+    display:flex; gap:12px; align-items:center; margin-bottom:14px;
+  }
+  .logo{
+    width:52px; height:52px; border-radius:10px;
+    background: radial-gradient(circle at 30% 30%, var(--accent1), var(--accent2));
+    display:flex;align-items:center;justify-content:center;font-weight:800;color:#05233a;
+    box-shadow: 0 6px 18px rgba(96,165,250,0.08);
+    font-size:18px;
+  }
+  .brand h1{margin:0;font-size:18px}
+  .muted{color:var(--muted); font-size:13px}
+
+  .nav{margin-top:16px; display:flex; flex-direction:column; gap:8px}
+  .nav a{
+    display:flex; gap:12px; align-items:center; padding:10px 12px; border-radius:8px;
+    color: #dbeafe; text-decoration:none; font-weight:600; font-size:14px;
+  }
+  .nav a.active{ background: linear-gradient(90deg, rgba(96,165,250,0.12), rgba(110,231,183,0.06)); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02) }
+  .nav a i{ width:18px; text-align:center; color:var(--accent2) }
+
+  .small-card{ background:var(--glass); padding:12px; border-radius:10px; margin-top:12px; border:1px solid rgba(255,255,255,0.02)}
+  .tech-list{display:flex; gap:8px; flex-direction:column}
+  .tech-item{display:flex; align-items:center; justify-content:space-between}
+  .chip{font-size:12px; color:#041024; background: linear-gradient(90deg,var(--accent1),var(--accent2)); padding:6px 8px; border-radius:999px; font-weight:700}
+
+  /* Header + content */
+  .header{
+    display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:18px;
+  }
+  .search{
+    background:var(--glass-2); padding:10px 12px; border-radius:10px; display:flex; align-items:center; gap:10px; border:1px solid rgba(255,255,255,0.02)
+  }
+  .search input{ background:transparent; border:0; outline:0; color:inherit; width:320px}
+  .role-selector{display:flex; gap:8px; align-items:center}
+
+  .role-pill{padding:8px 12px; border-radius:999px; background:transparent; border:1px dashed rgba(255,255,255,0.03); cursor:pointer; font-weight:700; color:var(--muted)}
+  .role-pill.active{ background: linear-gradient(90deg, rgba(96,165,250,0.12), rgba(110,231,183,0.06)); color:#e6eef8 }
+
+  /* Main cards */
+  .grid{ display:grid; grid-template-columns: 1fr 420px; gap:20px }
+  @media (max-width:1100px){ .grid{ grid-template-columns:1fr } }
+
+  .card{
+    background: linear-gradient(180deg, rgba(152, 181, 186, 0.02), transparent);
+    padding:16px; border-radius:12px; border:1px solid rgba(255,255,255,0.03);
+    box-shadow: 0 6px 18px rgba(128, 133, 158, 0.5);
+  }
+  .card h2{margin:0 0 10px 0; font-size:16px}
+  .muted-sm{font-size:13px;color:var(--muted)}
+
+  /* Form */
+  .form-row{display:flex; gap:12px; margin-bottom:10px}
+  .form-row.col{flex-direction:column}
+  input[type="text"], select, textarea{
+    width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.03);
+    background:transparent;color:inherit; outline:none;
+  }
+  textarea{min-height:110px; resize:vertical}
+  .btn{
+    border:0;padding:10px 14px;border-radius:10px; font-weight:700; cursor:pointer;
+    background:linear-gradient(90deg,var(--accent2),var(--accent1)); color:#042033;
+    box-shadow: 0 8px 30px rgba(96,165,250,0.08);
+  }
+  .btn.ghost{ background:transparent; border:1px solid rgba(255,255,255,0.04); color:var(--muted) }
+
+  .uploads{display:flex; gap:10px; flex-wrap:wrap; margin-top:8px}
+  .upl-thumb{width:120px;height:80px;border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.03); display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.01)}
+  .upl-thumb img, .upl-thumb video{width:100%; height:100%; object-fit:cover}
+
+  /* Tickets list */
+  .ticket{display:flex; align-items:flex-start; gap:14px; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.02); margin-bottom:10px; background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent)}
+  .ticket .meta{flex:1}
+  .status{padding:6px 9px; border-radius:999px; font-weight:700; font-size:13px}
+  .status.pending{background:rgba(245,158,11,0.12); color:var(--gold)}
+  .status.approved{background:rgba(34,197,94,0.08); color:var(--success)}
+  .status.inprogress{background:rgba(96,165,250,0.08); color:var(--accent2)}
+  .status.completed{background:rgba(16,185,129,0.08); color:var(--success)}
+  .ticket .actions{display:flex; gap:8px}
+
+  /* small footer */
+  .footer{margin-top:18px; color:var(--muted-sm); font-size:13px; text-align:center}
+  /* subtle hover */
+  a, button{transition:all .18s ease}
+  .role-badge{background:rgba(255,255,255,0.03); padding:6px 8px; border-radius:8px; font-weight:700}
+
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">Fx</div>
+      <div>
+        <h1>FixTrack</h1>
+        <div class="muted">Smart Repair & Maintenance</div>
+      </div>
+    </div>
+
+    <div class="small-card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-weight:800">Welcome</div>
+          <div class="muted">Role: <span id="sidebarRole" class="role-badge">Student</span></div>
+        </div>
+        <div class="chip" id="openCount">0</div>
+      </div>
+
+      <div class="muted-sm" style="margin-top:10px">Quick actions</div>
+      <div style="display:flex; gap:8px; margin-top:8px">
+        <button class="btn" id="newReportBtn">New Report</button>
+        <button class="btn ghost" id="viewAllBtn">All Tickets</button>
+      </div>
+    </div>
+
+    <nav class="nav" aria-label="Main navigation">
+      <a href="#" class="active" data-view="dashboard"><i class="fa-solid fa-chart-pie"></i>Dashboard</a>
+      <a href="#" data-view="reports"><i class="fa-solid fa-list-check"></i>Reports</a>
+      <a href="#" data-view="submit"><i class="fa-solid fa-pen-to-square"></i>Submit Issue</a>
+      <a href="#" data-view="history"><i class="fa-solid fa-clock-rotate-left"></i>Repair History</a>
+      <a href="#" data-view="technicians"><i class="fa-solid fa-user-gear"></i>Technicians</a>
+    </nav>
+
+    <div class="small-card" style="margin-top:12px">
+      <div style="font-weight:800">Technicians</div>
+      <div class="muted-sm">Active team & workload</div>
+      <div class="tech-list" id="techList" style="margin-top:10px">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- CONTENT -->
+  <main>
+    <div class="header">
+      <div style="display:flex; gap:12px; align-items:center">
+        <div style="display:flex; gap:12px; align-items:center;">
+          <div style="font-size:20px; font-weight:800">FixTrack</div>
+          <div class="muted">— Repair & Maintenance Management</div>
+        </div>
+
+        <div style="margin-left:12px" class="muted-sm">CMR COLLEGE OF ENGINEERING AND TECHNOLOGY</div>
+      </div>
+
+      <div style="display:flex; gap:12px; align-items:center">
+        <div class="search">
+          <i class="fa-solid fa-magnifying-glass" style="color:var(--muted)"></i>
+          <input id="searchInput" placeholder="Search complaints, rooms, technicians..." />
+        </div>
+
+        <div class="role-selector">
+          <div class="muted-sm">Act as</div>
+          <div id="rolePills" style="display:flex; gap:6px;">
+            <div class="role-pill active" data-role="Student">Student</div>
+            <div class="role-pill" data-role="Faculty">Faculty</div>
+            <div class="role-pill" data-role="Coordinator">Coordinator</div>
+            <div class="role-pill" data-role="Admin">Admin</div>
+            <div class="role-pill" data-role="Technician">Technician</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- left column -->
+      <section>
+        <div class="card" id="mainView">
+          <!-- dynamic content injected here -->
+          <div id="dashboardView">
+            <h2>Overview</h2>
+            <div style="display:flex; gap:12px; align-items:center; margin-bottom:12px">
+              <div style="flex:1; display:grid; grid-template-columns:repeat(3,1fr); gap:12px">
+                <div style="padding:12px; border-radius:10px; background:linear-gradient(90deg, rgba(96,165,250,0.06), rgba(110,231,183,0.02));">
+                  <div style="font-size:22px; font-weight:800" id="totalTickets">0</div>
+                  <div class="muted-sm">Total Reports</div>
+                </div>
+                <div style="padding:12px; border-radius:10px; background:linear-gradient(90deg, rgba(110,231,183,0.04), rgba(96,165,250,0.02));">
+                  <div style="font-size:22px; font-weight:800" id="openTickets">0</div>
+                  <div class="muted-sm">Open</div>
+                </div>
+                <div style="padding:12px; border-radius:10px; background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));">
+                  <div style="font-size:22px; font-weight:800" id="avgRepairTime">—</div>
+                  <div class="muted-sm">Avg Repair (hrs)</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap">
+              <div style="flex:1; min-width:300px">
+                <h2 style="margin-top:0">Recent Reports</h2>
+                <div id="recentList" style="max-height:420px; overflow:auto; padding-right:6px">
+                  <!-- tickets -->
+                </div>
+              </div>
+
+              <div style="width:300px">
+                <h2 style="margin-top:0">Issue Types</h2>
+                <canvas id="issueChart" width="300" height="260"></canvas>
+                <div style="height:8px"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- submit view -->
+          <div id="submitView" style="display:none">
+            <h2>Submit an Issue</h2>
+            <div class="muted-sm">Report a problem in a classroom, lab or equipment. Attach images or short video for faster diagnosis.</div>
+            <form id="reportForm" style="margin-top:12px">
+              <div class="form-row">
+                <input type="text" id="title" placeholder="Short title (e.g., Projector not working)" required>
+                <select id="category">
+                  <option style ="color:black;font-weight:bold;"value="it">IT</option>
+  <option style ="color:black;font-weight:bold;" value="electrical">Electrical</option>
+  <option style ="color:black;font-weight:bold;" value="lifts">Lifts</option>
+  <option style ="color:black;font-weight:bold;" value="plumber">Plumber</option>
+  <option style ="color:black;font-weight:bold;" value="cleaning">Cleaning</option>
+  <option style ="color:black;font-weight:bold;" value="other">Other</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <input type="text" id="location" placeholder="Location (e.g., Lab 204, Block A)">
+                <input type="text" id="asset" placeholder="Asset (optional e.g., Projector, PC-12)">
+              </div>
+              <div class="form-row col">
+                <textarea id="description" placeholder="Describe the issue in detail..."></textarea>
+              </div>
+
+              <div style="display:flex; gap:8px; align-items:center; margin-top:6px">
+                <label class="btn ghost" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer">
+                  <i class="fa-solid fa-image"></i> Add Images / Video
+                  <input id="fileInput" type="file" accept="image/*,video/*" multiple style="display:none">
+                </label>
+                <select id="priority" style="padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit">
+                  <option value="Low">Low Priority</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                </select>
+                <button class="btn" type="submit">Submit</button>
+              </div>
+
+              <div class="uploads" id="previewArea"></div>
+            </form>
+          </div>
+
+          <!-- reports view -->
+          <div id="reportsView" style="display:none">
+            <h2>All Reports</h2>
+            <div id="allReportsList" style="max-height:520px; overflow:auto; padding-right:6px"></div>
+          </div>
+
+          <!-- history -->
+          <div id="historyView" style="display:none">
+            <h2>Repair History</h2>
+            <div class="muted-sm">Historic logs by location & asset</div>
+            <div id="historyList" style="margin-top:12px"></div>
+          </div>
+
+          <!-- technicians -->
+          <div id="techView" style="display:none">
+            <h2>Technicians</h2>
+            <div class="muted-sm">Manage team & workloads (demo-only)</div>
+            <div id="techManage" style="margin-top:12px"></div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- right column -->
+      <aside>
+        <div class="card">
+          <h2>Activity</h2>
+          <div class="muted-sm" id="activityFeed">No recent activity</div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h2>My Tasks</h2>
+          <div id="myTasks" class="muted-sm">No tasks</div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h2>Quick Analytics</h2>
+          <div style="display:flex; gap:8px; margin-top:8px">
+            <div style="flex:1; padding:10px; border-radius:10px; background:linear-gradient(90deg, rgba(96,165,250,0.04), transparent)">
+              <div style="font-weight:800" id="techPerf">—</div>
+              <div class="muted-sm">Tech Avg Time</div>
+            </div>
+            <div style="flex:1; padding:10px; border-radius:10px; background:linear-gradient(90deg, rgba(110,231,183,0.04), transparent)">
+              <div style="font-weight:800" id="satisfaction">—</div>
+              <div class="muted-sm">Avg Rating</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">
+          BY TEAM 09 SIP LAB
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<script>
+/*
+  FixTrack - Frontend demo (single file)
+  - Replace simulated logic with real backend (Supabase / Firebase / REST) where noted.
+  - Everything persists in localStorage for demoing.
+*/
+
+/* ---------- App State ---------- */
+const DEFAULT_TECHNICIANS = [
+  {id:'tech-1', name:'Asha Patel', skills:['IT','Electrical'], workload:1, rating:4.7},
+  {id:'tech-2', name:'Ravi Kumar', skills:['Carpentry','Electrical'], workload:2, rating:4.5},
+  {id:'tech-3', name:'Nina Rao', skills:['IT'], workload:0, rating:4.9},
+];
+
+const sampleComplaints = [
+  {id:genId(), title:'Projector flickering', category:'IT', priority:'High', location:'Lab 101', asset:'Projector A', description:'Screen flickers after 10 mins.', status:'Pending', createdAt:Date.now()-1000*60*60*24, images:[], requester:'Student', assignedTo:null, history:[]},
+  {id:genId(), title:'Light not working', category:'Electrical', priority:'Medium', location:'Classroom 12', asset:'Light', description:'Ceiling light faulty.', status:'Approved', createdAt:Date.now()-1000*60*60*30, images:[], requester:'Faculty', assignedTo:null, history:[]},
+];
+
+/* localStorage keys */
+const LS = {
+  COMPLAINTS:'fixtrack_complaints_v1',
+  TECHS:'fixtrack_techs_v1',
+  ACTIVITY:'fixtrack_activity_v1',
+  ROLE:'fixtrack_role_v1'
+};
+
+/* load state or seed */
+let complaints = JSON.parse(localStorage.getItem(LS.COMPLAINTS) || 'null') || sampleComplaints;
+let technicians = JSON.parse(localStorage.getItem(LS.TECHS) || 'null') || DEFAULT_TECHNICIANS;
+let activity = JSON.parse(localStorage.getItem(LS.ACTIVITY) || '[]') || [];
+let currentRole = localStorage.getItem(LS.ROLE) || 'Student';
+
+/* ---------- Helpers ---------- */
+function saveState(){
+  localStorage.setItem(LS.COMPLAINTS, JSON.stringify(complaints));
+  localStorage.setItem(LS.TECHS, JSON.stringify(technicians));
+  localStorage.setItem(LS.ACTIVITY, JSON.stringify(activity));
+  localStorage.setItem(LS.ROLE, currentRole);
+}
+function genId(){ return 'r_'+Math.random().toString(36).slice(2,9) }
+function timeAgo(ts){
+  const diff = Math.floor((Date.now()-ts)/1000);
+  if(diff<60) return diff+'s';
+  if(diff<3600) return Math.floor(diff/60)+'m';
+  if(diff<86400) return Math.floor(diff/3600)+'h';
+  return Math.floor(diff/86400)+'d';
+}
+
+/* ---------- UI Elements ---------- */
+const rolePills = document.querySelectorAll('.role-pill');
+const sidebarRole = document.getElementById('sidebarRole');
+const openCount = document.getElementById('openCount');
+const newReportBtn = document.getElementById('newReportBtn');
+const viewAllBtn = document.getElementById('viewAllBtn');
+const navLinks = document.querySelectorAll('.nav a');
+const mainView = document.getElementById('mainView');
+const dashboardView = document.getElementById('dashboardView');
+const submitView = document.getElementById('submitView');
+const reportsView = document.getElementById('reportsView');
+const historyView = document.getElementById('historyView');
+const techView = document.getElementById('techView');
+const recentList = document.getElementById('recentList');
+const allReportsList = document.getElementById('allReportsList');
+const historyList = document.getElementById('historyList');
+const techListEl = document.getElementById('techList');
+const activityFeed = document.getElementById('activityFeed');
+const myTasks = document.getElementById('myTasks');
+const techManage = document.getElementById('techManage');
+const searchInput = document.getElementById('searchInput');
+const totalTickets = document.getElementById('totalTickets');
+const openTickets = document.getElementById('openTickets');
+const avgRepairTime = document.getElementById('avgRepairTime');
+const techPerf = document.getElementById('techPerf');
+const satisfaction = document.getElementById('satisfaction');
+const issueChartCanvas = document.getElementById('issueChart');
+const sidebarRoleBadge = document.getElementById('sidebarRole');
+
+/* Form elements */
+const reportForm = document.getElementById('reportForm');
+const fileInput = document.getElementById('fileInput');
+const previewArea = document.getElementById('previewArea');
+let stagedFiles = [];
+
+/* ---------- Event wiring ---------- */
+document.addEventListener('DOMContentLoaded', ()=>{
+  setupRole(currentRole);
+  renderAll();
+  setupNav();
+  bindActions();
+  renderCharts();
+});
+
+function setupNav(){
+  navLinks.forEach(a=>{
+    a.addEventListener('click', (e)=>{
+      e.preventDefault();
+      navLinks.forEach(x=>x.classList.remove('active'));
+      a.classList.add('active');
+      showView(a.dataset.view);
+    });
+  });
+}
+
+function bindActions(){
+  rolePills.forEach(p=>{
+    p.addEventListener('click', ()=> {
+      rolePills.forEach(x=>x.classList.remove('active'));
+      p.classList.add('active');
+      setupRole(p.dataset.role);
+    });
+  });
+
+  newReportBtn.addEventListener('click', ()=> showView('submit'));
+  viewAllBtn.addEventListener('click', ()=> showView('reports'));
+
+  fileInput.addEventListener('change', handleFiles);
+  reportForm.addEventListener('submit', handleSubmit);
+
+  searchInput.addEventListener('input', ()=>{
+    renderRecent(searchInput.value);
+    renderAllReports(searchInput.value);
+  });
+}
+
+/* ---------- Role management (demo-only) ---------- */
+function setupRole(role){
+  currentRole = role;
+  sidebarRole.textContent = role;
+  sidebarRoleBadge.textContent = role;
+  rolePills.forEach(p => {
+    if (p.dataset.role === role) p.classList.add('active'); else p.classList.remove('active');
+  });
+  saveState();
+  renderAll();
+}
+
+/* ---------- File preview ---------- */
+function handleFiles(e){
+  const files = Array.from(e.target.files || []);
+  stagedFiles = [];
+  previewArea.innerHTML = '';
+  files.forEach(file=>{
+    const reader = new FileReader();
+    reader.onload = function(evt){
+      const url = evt.target.result;
+      const div = document.createElement('div');
+      div.className = 'upl-thumb';
+      if(file.type.startsWith('image/')){
+        const img = document.createElement('img'); img.src = url;
+        div.appendChild(img);
+      } else if(file.type.startsWith('video/')){
+        const v = document.createElement('video'); v.src = url; v.controls=true;
+        div.appendChild(v);
+      } else {
+        div.textContent = file.name;
+      }
+      previewArea.appendChild(div);
+    };
+    reader.readAsDataURL(file);
+    stagedFiles.push({name:file.name, type:file.type, data:null});
+    // store dataURL as preview (not uploading in demo)
+    const r2 = new FileReader();
+    r2.onload = (e2)=>{ stagedFiles[stagedFiles.length-1].data = e2.target.result };
+    r2.readAsDataURL(file);
+  });
+}
+
+/* ---------- Submitting a report ---------- */
+function handleSubmit(e){
+  e.preventDefault();
+  const newR = {
+    id: genId(),
+    title: document.getElementById('title').value || 'Untitled',
+    category: document.getElementById('category').value,
+    priority: document.getElementById('priority').value,
+    location: document.getElementById('location').value || 'Unknown',
+    asset: document.getElementById('asset').value || '',
+    description: document.getElementById('description').value || '',
+    status: currentRole === 'Faculty' ? 'Approved' : 'Pending', // faculty bypass verification
+    createdAt: Date.now(),
+    images: stagedFiles.map(f=>({name:f.name,type:f.type,data:f.data})),
+    requester: currentRole,
+    assignedTo: null,
+    history: [{ts:Date.now(), by:currentRole, note:'Created', status: currentRole === 'Faculty' ? 'Approved' : 'Pending'}],
+    rating: null
+  };
+
+  complaints.unshift(newR);
+  // if faculty (auto-approved) then forward to admin -> auto assign technician
+  if(newR.status === 'Approved'){
+    activity.unshift({ts:Date.now(), text:`Auto-approved report "${newR.title}" by ${newR.requester}`});
+    autoAssignTechnician(newR);
+    newR.history.push({ts:Date.now(), by:'System', note:'Auto-assigned to technician', status:'Assigned'});
+  } else {
+    activity.unshift({ts:Date.now(), text:`New report "${newR.title}" submitted by ${newR.requester}`});
+  }
+
+  // reset form
+  reportForm.reset();
+  previewArea.innerHTML = '';
+  stagedFiles = [];
+  saveState();
+  renderAll();
+  showView('dashboard');
+}
+
+/* ---------- Auto-assignment logic (simple) ---------- */
+/* Choose technician with matching skill and lowest workload */
+function autoAssignTechnician(report){
+  // find techs that match category skill
+  const skill = report.category;
+  // try to find tech that has the skill
+  let candidates = technicians.filter(t => t.skills.includes(skill));
+  if(!candidates.length) candidates = technicians.slice(); // fallback all
+  // sort by workload ascending
+  candidates.sort((a,b)=>a.workload - b.workload);
+  const chosen = candidates[0];
+  if(!chosen) {
+    activity.unshift({ts:Date.now(), text:`No technicians available to assign "${report.title}"`});
+    return;
+  }
+  // assign
+  report.assignedTo = chosen.id;
+  report.status = 'In Progress';
+  chosen.workload = (chosen.workload || 0) + 1;
+  activity.unshift({ts:Date.now(), text:`${chosen.name} assigned to "${report.title}"`});
+  sendNotification(`${chosen.name}`, `New task: ${report.title}`);
+  saveState();
+}
+
+/* ---------- Simulated notifications (demo) ---------- */
+function sendNotification(to, message){
+  // In production: send email or push via backend
+  console.log('Notification ->', to, message);
+}
+
+/* ---------- Render functions ---------- */
+function renderAll(){
+  renderTechList();
+  renderRecent();
+  renderAllReports();
+  renderHistory();
+  renderMyTasks();
+  renderActivity();
+  renderDashboardSummary();
+  renderTechManage();
+  renderCharts();
+  updateOpenCount();
+}
+
+/* Sidebar tech list */
+function renderTechList(){
+  techListEl.innerHTML = '';
+  technicians.forEach(t=>{
+    const div = document.createElement('div');
+    div.className = 'tech-item';
+    div.innerHTML = `<div style="display:flex; gap:10px; align-items:center">
+      <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(90deg,var(--accent2),var(--accent1));display:flex;align-items:center;justify-content:center;color:#042033;font-weight:800">${t.name.split(' ').map(n=>n[0]).slice(0,2).join('')}</div>
+      <div><div style="font-weight:800">${t.name}</div><div class="muted-sm">${t.skills.join(', ')}</div></div>
+    </div>
+    <div><div class="muted-sm">WL: <strong style="color:var(--accent1)">${t.workload}</strong></div></div>`;
+    techListEl.appendChild(div);
+  });
+}
+
+/* Recent reports (dashboard) */
+function renderRecent(filter=''){
+  recentList.innerHTML = '';
+  const items = (complaints || []).slice(0,12).filter(c => !filter || JSON.stringify(c).toLowerCase().includes(filter.toLowerCase()));
+  if(!items.length) recentList.innerHTML = '<div class="muted-sm">No reports found.</div>';
+  items.forEach(c=>{
+    const div = document.createElement('div');
+    div.className = 'ticket';
+    div.innerHTML = `<div style="width:56px; display:flex;align-items:center;justify-content:center; border-radius:8px; background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));">
+      <div style="font-weight:800;color:var(--muted)">${c.category[0]}</div>
+    </div>
+    <div class="meta">
+      <div style="display:flex; justify-content:space-between; gap:10px; align-items:center">
+        <div>
+          <div style="font-weight:800">${c.title}</div>
+          <div class="muted-sm">${c.location} • ${c.asset || '—'}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="muted-sm">${timeAgo(c.createdAt)}</div>
+          <div style="height:6px"></div>
+          <div class="status ${statusClass(c.status)}">${c.status}</div>
+        </div>
+      </div>
+      <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center">
+        <div class="muted-sm">Req: ${c.requester} • Priority: ${c.priority}</div>
+        <div class="actions">
+          <button class="btn ghost" onclick="viewReport('${c.id}')">View</button>
+        </div>
+      </div>
+    </div>`;
+    recentList.appendChild(div);
+  });
+}
+
+/* All reports view */
+function renderAllReports(filter=''){
+  allReportsList.innerHTML = '';
+  const items = (complaints || []).slice().filter(c => !filter || JSON.stringify(c).toLowerCase().includes(filter.toLowerCase()));
+  if(!items.length) { allReportsList.innerHTML = '<div class="muted-sm">No reports yet.</div>'; return; }
+  items.forEach(c=>{
+    const div = document.createElement('div');
+    div.className = 'ticket';
+    div.innerHTML = `
+      <div style="width:56px; display:flex;align-items:center;justify-content:center; border-radius:8px; background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));">
+        <div style="font-weight:800;color:var(--muted)">${c.category[0]}</div>
+      </div>
+      <div class="meta">
+        <div style="display:flex; justify-content:space-between; gap:10px; align-items:center">
+          <div>
+            <div style="font-weight:800">${c.title}</div>
+            <div class="muted-sm">${c.location} • ${c.asset || '—'}</div>
+            <div class="muted-sm" style="margin-top:6px">${c.description}</div>
+          </div>
+          <div style="text-align:right">
+            <div class="muted-sm">${new Date(c.createdAt).toLocaleString()}</div>
+            <div style="height:6px"></div>
+            <div class="status ${statusClass(c.status)}">${c.status}</div>
+          </div>
+        </div>
+        <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center">
+          <div class="muted-sm">By: ${c.requester}</div>
+          <div class="actions">
+            <button class="btn ghost" onclick="viewReport('${c.id}')">Open</button>
+          </div>
+        </div>
+      </div>
+    `;
+    allReportsList.appendChild(div);
+  });
+}
+
+/* History */
+function renderHistory(){
+  historyList.innerHTML = '';
+  const grouped = {};
+  complaints.forEach(c=>{
+    const key = c.location || 'Unknown';
+    grouped[key] = grouped[key] || [];
+    grouped[key].push(c);
+  });
+  for(const loc in grouped){
+    const div = document.createElement('div');
+    div.className = 'small-card';
+    div.style.marginBottom = '10px';
+    div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:800">${loc}</div><div class="muted-sm">${grouped[loc].length} reports</div></div>`;
+    grouped[loc].slice(0,6).forEach(r=>{
+      const li = document.createElement('div'); li.style.marginTop='8px';
+      li.innerHTML = `<div style="display:flex; justify-content:space-between"><div class="muted-sm">${r.title}</div><div class="status ${statusClass(r.status)}">${r.status}</div></div>`;
+      div.appendChild(li);
+    });
+    historyList.appendChild(div);
+  }
+}
+
+/* Activity */
+function renderActivity(){
+  activityFeed.innerHTML = '';
+  if(!activity.length) { activityFeed.textContent = 'No recent activity.'; return; }
+  activity.slice(0,8).forEach(a=>{
+    const d = document.createElement('div');
+    d.style.marginBottom = '8px';
+    d.innerHTML = `<div style="display:flex;justify-content:space-between"><div class="muted-sm">${a.text}</div><div class="muted-sm">${timeAgo(a.ts)}</div></div>`;
+    activityFeed.appendChild(d);
+  });
+}
+
+/* My tasks */
+function renderMyTasks(){
+  myTasks.innerHTML = '';
+  let list = [];
+  if(currentRole === 'Technician'){
+    // find tech id by first tech (demo choose tech-1 for mapping)
+    // In a real app you'd map logged-in technician id -> tasks
+    // Here we let user pick which tech they represent if technician role
+    const myTech = technicians[0];
+    list = complaints.filter(c=>c.assignedTo === myTech.id && c.status !== 'Completed');
+    if(!list.length) myTasks.innerHTML = '<div class="muted-sm">No assigned tasks.</div>';
+    else list.forEach(t=>{
+      const el = document.createElement('div'); el.className='ticket';
+      el.innerHTML = `<div style="width:36px; display:flex;align-items:center;justify-content:center">${t.category[0]}</div>
+        <div class="meta"><div style="display:flex;justify-content:space-between"><div style="font-weight:800">${t.title}</div><div class="muted-sm">${timeAgo(t.createdAt)}</div></div>
+        <div style="margin-top:6px;display:flex;gap:8px"><button class="btn" onclick="updateStatus('${t.id}','In Progress')">Start</button><button class="btn ghost" onclick="updateStatus('${t.id}','Completed')">Complete</button></div></div>`;
+      myTasks.appendChild(el);
+    });
+  } else {
+    const assignedToMe = complaints.filter(c=>c.requester === currentRole).slice(0,6);
+    if(!assignedToMe.length) myTasks.innerHTML = '<div class="muted-sm">No open reports by you.</div>';
+    else assignedToMe.forEach(t=>{
+      const el = document.createElement('div'); el.className='ticket';
+      el.innerHTML = `<div style="width:36px; display:flex;align-items:center;justify-content:center">${t.category[0]}</div>
+      <div class="meta"><div style="display:flex;justify-content:space-between"><div style="font-weight:800">${t.title}</div><div class="muted-sm">${timeAgo(t.createdAt)}</div></div>
+      <div style="margin-top:6px" class="muted-sm">Status: <strong>${t.status}</strong></div></div>`;
+      myTasks.appendChild(el);
+    });
+  }
+}
+
+/* Tech manage panel */
+function renderTechManage(){
+  techManage.innerHTML = '';
+  technicians.forEach(t=>{
+    const el = document.createElement('div');
+    el.className = 'small-card';
+    el.style.marginBottom = '8px';
+    el.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center">
+      <div><div style="font-weight:800">${t.name}</div><div class="muted-sm">${t.skills.join(', ')}</div></div>
+      <div style="text-align:right"><div style="font-weight:800">${t.workload}</div><div class="muted-sm">Open</div></div>
+    </div>
+    <div style="margin-top:8px; display:flex; gap:8px"><button class="btn ghost" onclick='editTech("${t.id}")'>Edit</button><button class="btn" onclick='reassignTech("${t.id}")'>Reassign</button></div>`;
+    techManage.appendChild(el);
+  });
+}
+
+/* Dashboard summary metrics */
+function renderDashboardSummary(){
+  totalTickets.textContent = complaints.length;
+  openTickets.textContent = complaints.filter(c=>c.status !== 'Completed').length;
+  // simplistic avg repair time from completed complaints
+  const completed = complaints.filter(c=>c.status === 'Completed' && c.history && c.history.length>1);
+  let avg = '—';
+  if(completed.length){
+    const hours = completed.map(c=>{
+      const created = c.createdAt;
+      const completedAt = (c.history.find(h=>h.status==='Completed') || {}).ts || Date.now();
+      return (completedAt - created)/3600000;
+    });
+    avg = (hours.reduce((a,b)=>a+b,0)/hours.length).toFixed(1);
+  }
+  avgRepairTime.textContent = avg;
+  techPerf.textContent = computeTechAvgTime().toFixed(1)+'h';
+  satisfaction.textContent = computeAvgRating().toFixed(1)+'/5';
+}
+
+/* Charts */
+let issueChart;
+function renderCharts(){
+  const counts = complaints.reduce((acc,c)=>{
+    acc[c.category] = (acc[c.category]||0)+1;
+    return acc;
+  }, {});
+  const labels = Object.keys(counts);
+  const data = labels.map(l=>counts[l]);
+  if(issueChart) {
+    issueChart.data.labels = labels; issueChart.data.datasets[0].data = data; issueChart.update();
+  } else {
+    issueChart = new Chart(issueChartCanvas.getContext('2d'), {
+      type:'doughnut',
+      data:{
+        labels,
+        datasets:[{data, backgroundColor:['#60a5fa','#6ee7b7','#f59e0b','#ef4444','#a78bfa']}]
+      },
+      options:{plugins:{legend:{labels:{color:'#cfe6ff'}}}}
+    });
+  }
+}
+
+/* Utility: status class */
+function statusClass(status){
+  if(!status) return '';
+  return status.toLowerCase().replace(/\s/g,'');
+}
+
+/* View router */
+function showView(view){
+  // hide all
+  [dashboardView, submitView, reportsView, historyView, techView].forEach(v=>v.style.display='none');
+  if(view === 'dashboard') dashboardView.style.display = 'block';
+  if(view === 'submit') submitView.style.display = 'block';
+  if(view === 'reports') reportsView.style.display = 'block';
+  if(view === 'history') historyView.style.display = 'block';
+  if(view === 'technicians') techView.style.display = 'block';
+  // highlight nav
+  navLinks.forEach(a=> a.classList.toggle('active', a.dataset.view === view));
+}
+
+/* View a single report in a modal-like overlay (simple) */
+window.viewReport = function(id){
+  const c = complaints.find(x=>x.id===id);
+  if(!c) return alert('Report not found');
+  // build modal
+  const modal = document.createElement('div');
+  modal.style.position='fixed'; modal.style.inset='0'; modal.style.zIndex='9999';
+  modal.style.display='flex'; modal.style.justifyContent='center'; modal.style.alignItems='center';
+  modal.style.background='linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.6))';
+  const card = document.createElement('div'); card.style.width='760px'; card.style.maxWidth='95%'; card.style.borderRadius='12px'; card.style.padding='18px';
+  card.style.background='linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))'; card.style.border='1px solid rgba(255,255,255,0.03)';
+  card.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div><h3 style="margin:0">${c.title}</h3><div class="muted-sm">${c.location} • ${c.asset || ''}</div></div><div><button class="btn ghost" id="closeModal">Close</button></div></div>
+    <div style="margin-top:12px; display:flex; gap:12px">
+      <div style="flex:1"><div class="muted-sm">Category: <strong>${c.category}</strong></div><div style="height:8px"></div><div class="muted-sm">Priority: <strong>${c.priority}</strong></div><div style="height:8px"></div><div class="muted-sm">Status: <strong>${c.status}</strong></div><div style="height:8px"></div><div class="muted-sm">Requester: <strong>${c.requester}</strong></div></div>
+      <div style="width:260px">
+        <div style="font-weight:800">Attachments</div>
+        <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px">${c.images.length ? c.images.map(img => img.type.startsWith('image/') ? `<img src="${img.data}" style="width:100%; border-radius:8px" />` : `<video src="${img.data}" controls style="width:100%; border-radius:8px"></video>`).join('') : '<div class="muted-sm">No attachments</div>'}</div>
+      </div>
+    </div>
+    <div style="margin-top:12px"><div style="font-weight:700">Description</div><div class="muted-sm" style="margin-top:6px">${c.description}</div></div>
+    <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end" id="modalActions"></div>
+    <div style="margin-top:12px"><div style="font-weight:700">History</div><div id="histWrap" class="muted-sm" style="margin-top:8px">${c.history.map(h=>`<div>${new Date(h.ts).toLocaleString()} — ${h.by}: ${h.note} (${h.status||''})</div>`).join('')}</div></div>
+  `;
+  modal.appendChild(card);
+  document.body.appendChild(modal);
+
+  document.getElementById('closeModal').addEventListener('click', ()=>{ modal.remove(); });
+
+  // Actions depend on role
+  const modalActions = document.getElementById('modalActions');
+  if(currentRole === 'Coordinator' && c.status === 'Pending'){
+    const btnA = document.createElement('button'); btnA.className='btn'; btnA.textContent='Approve'; btnA.onclick = ()=>{ approveReport(c.id, true); modal.remove(); };
+    const btnR = document.createElement('button'); btnR.className='btn ghost'; btnR.textContent='Reject'; btnR.onclick = ()=>{ approveReport(c.id, false); modal.remove(); };
+    modalActions.appendChild(btnA); modalActions.appendChild(btnR);
+  } else if(currentRole === 'Admin' && c.status === 'Approved'){
+    const btnAssign = document.createElement('button'); btnAssign.className='btn'; btnAssign.textContent='Assign Technician'; btnAssign.onclick = ()=>{ autoAssignTechnician(c); saveState(); renderAll(); modal.remove(); };
+    modalActions.appendChild(btnAssign);
+  } else if(currentRole === 'Technician' && c.assignedTo){
+    const btnStart = document.createElement('button'); btnStart.className='btn'; btnStart.textContent='Start Work'; btnStart.onclick = ()=>{ updateStatus(c.id,'In Progress'); modal.remove(); };
+    const btnComp = document.createElement('button'); btnComp.className='btn ghost'; btnComp.textContent='Mark Completed'; btnComp.onclick = ()=>{ updateStatus(c.id,'Completed'); modal.remove(); };
+    modalActions.appendChild(btnStart); modalActions.appendChild(btnComp);
+  } else {
+    // feedback if completed
+    if(c.status === 'Completed' && !c.rating && (currentRole === c.requester || currentRole === 'Faculty' || currentRole === 'Student')){
+      const rateBtn = document.createElement('button'); rateBtn.className='btn'; rateBtn.textContent='Give Feedback'; rateBtn.onclick = ()=>{ collectFeedback(c.id); modal.remove(); };
+      modalActions.appendChild(rateBtn);
+    }
+  }
+}
+
+/* Approve/Reject by Coordinator */
+function approveReport(id, approve){
+  const c = complaints.find(x=>x.id===id);
+  if(!c) return;
+  if(approve){
+    c.status = 'Approved';
+    c.history.push({ts:Date.now(), by: 'Coordinator', note:'Approved', status:'Approved'});
+    activity.unshift({ts:Date.now(), text:`Coordinator approved "${c.title}"`});
+    // auto-forward to admin: we simulate immediate admin action to assign
+    activity.unshift({ts:Date.now(), text:`Forwarded to Maintenance Committee (Admin)`});
+  } else {
+    c.status = 'Rejected';
+    c.history.push({ts:Date.now(), by: 'Coordinator', note:'Rejected', status:'Rejected'});
+    activity.unshift({ts:Date.now(), text:`Coordinator rejected "${c.title}"`});
+  }
+  saveState();
+  renderAll();
+}
+
+/* Update status by technician */
+window.updateStatus = function(id,status){
+  const c = complaints.find(x=>x.id===id);
+  if(!c) return;
+  const prev = c.status;
+  c.status = status;
+  c.history.push({ts:Date.now(), by: currentRole === 'Technician' ? 'Technician' : currentRole, note:`Status -> ${status}`, status});
+  if(status === 'Completed'){
+    // decrement tech workload
+    if(c.assignedTo){
+      const t = technicians.find(tt=>tt.id===c.assignedTo);
+      if(t) t.workload = Math.max(0, (t.workload||0)-1);
+    }
+    activity.unshift({ts:Date.now(), text:`"${c.title}" marked Completed`});
+  } else {
+    activity.unshift({ts:Date.now(), text:`"${c.title}" moved to ${status}`});
+  }
+  saveState();
+  renderAll();
+}
+
+/* Feedback collection */
+function collectFeedback(id){
+  const c = complaints.find(x=>x.id===id);
+  if(!c) return;
+  const comment = prompt('Give feedback (short):');
+  const rating = prompt('Rate from 1 to 5:');
+  const r = Math.min(5, Math.max(1, Number(rating||5)));
+  c.rating = r;
+  c.history.push({ts:Date.now(), by: currentRole, note:`Feedback: ${comment || ''}`, status:'Feedback'});
+  if(c.assignedTo){
+    const tech = technicians.find(t=>t.id===c.assignedTo);
+    if(tech){
+      // adjust average rating naively
+      tech.rating = Math.round(((tech.rating||5) + r)/2*10)/10;
+    }
+  }
+  activity.unshift({ts:Date.now(), text:`Feedback received for "${c.title}" — ${r}/5`});
+  saveState();
+  renderAll();
+}
+
+/* Edit tech (demo) */
+window.editTech = function(id){
+  const t = technicians.find(x=>x.id===id);
+  if(!t) return;
+  const name = prompt('Technician name:', t.name);
+  const skills = prompt('Skills (comma separated):', t.skills.join(','));
+  if(name) t.name = name;
+  if(skills) t.skills = skills.split(',').map(s=>s.trim());
+  saveState(); renderAll();
+}
+
+/* Reassign: reassign open tasks to this tech (demo) */
+window.reassignTech = function(id){
+  const t = technicians.find(x=>x.id===id);
+  if(!t) return;
+  // assign the oldest approved/unassigned or in-progress task to this tech
+  const candidate = complaints.find(c => (c.status === 'Approved' || c.status === 'In Progress') && c.assignedTo !== id);
+  if(!candidate) return alert('No suitable task to reassign (demo).');
+  // decrement previous tech
+  if(candidate.assignedTo){
+    const prev = technicians.find(x=>x.id===candidate.assignedTo);
+    if(prev) prev.workload = Math.max(0, prev.workload-1);
+  }
+  candidate.assignedTo = t.id;
+  candidate.status = 'In Progress';
+  t.workload = (t.workload||0)+1;
+  activity.unshift({ts:Date.now(), text:`"${candidate.title}" reassigned to ${t.name}`});
+  saveState(); renderAll();
+}
+
+/* compute tech average time (mock) */
+function computeTechAvgTime(){
+  // for demo return 2.5
+  return 2.5 + (Math.random()-0.5);
+}
+function computeAvgRating(){
+  const vals = technicians.map(t=>t.rating||4.5);
+  return (vals.reduce((a,b)=>a+b,0)/vals.length) || 4.5;
+}
+
+/* update open count */
+function updateOpenCount(){ openCount.textContent = complaints.filter(c=>c.status !== 'Completed').length; }
+
+/* View switchers */
+document.getElementById('viewAllBtn').addEventListener('click', ()=>showView('reports'));
+
+/* small helper: render techs array into listing for sidebar already done */
+
+window.addEventListener('beforeunload', saveState);
+
+/* Render initial */
+renderAll();
+
+</script>
+</body>
+</html>
